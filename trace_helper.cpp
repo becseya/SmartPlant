@@ -24,7 +24,7 @@
 #include "mbed_trace.h"
 
 #ifdef FEA_TRACE_SUPPORT
-#include "platform/PlatformMutex.h"
+    #include "platform/PlatformMutex.h"
 
 /**
  * Local mutex object for synchronization
@@ -63,10 +63,5 @@ static void serial_unlock()
     mutex.unlock();
 }
 #else
-void setup_trace()
-{
-
-}
+void setup_trace() {}
 #endif
-
-

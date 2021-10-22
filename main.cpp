@@ -16,14 +16,14 @@
  */
 #include <stdio.h>
 
+#include "events/EventQueue.h"
 #include "lorawan/LoRaWANInterface.h"
 #include "lorawan/system/lorawan_data_structures.h"
-#include "events/EventQueue.h"
 
 // Application helpers
 #include "DummySensor.h"
-#include "trace_helper.h"
 #include "lora_radio_helper.h"
+#include "trace_helper.h"
 
 using namespace events;
 
@@ -36,38 +36,38 @@ uint8_t rx_buffer[30];
 /*
  * Sets up an application dependent transmission timer in ms. Used only when Duty Cycling is off for testing
  */
-#define TX_TIMER                        10000
+#define TX_TIMER 10000
 
 /**
  * Maximum number of events for the event queue.
  * 10 is the safe number for the stack events, however, if application
  * also uses the queue for whatever purposes, this number should be increased.
  */
-#define MAX_NUMBER_OF_EVENTS            10
+#define MAX_NUMBER_OF_EVENTS 10
 
 /**
  * Maximum number of retries for CONFIRMED messages before giving up
  */
-#define CONFIRMED_MSG_RETRY_COUNTER     3
+#define CONFIRMED_MSG_RETRY_COUNTER 3
 
 /**
  * Dummy pin for dummy sensor
  */
-#define PC_9                            0
+#define PC_9 0
 
 /**
  * Dummy sensor class object
  */
-DS1820  ds1820(PC_9);
+DS1820 ds1820(PC_9);
 
 /**
-* This event queue is the global event queue for both the
-* application and stack. To conserve memory, the stack is designed to run
-* in the same thread as the application and the application is responsible for
-* providing an event queue to the stack that will be used for ISR deferment as
-* well as application information event queuing.
-*/
-static EventQueue ev_queue(MAX_NUMBER_OF_EVENTS *EVENTS_EVENT_SIZE);
+ * This event queue is the global event queue for both the
+ * application and stack. To conserve memory, the stack is designed to run
+ * in the same thread as the application and the application is responsible for
+ * providing an event queue to the stack that will be used for ISR deferment as
+ * well as application information event queuing.
+ */
+static EventQueue ev_queue(MAX_NUMBER_OF_EVENTS* EVENTS_EVENT_SIZE);
 
 /**
  * Event handler.
@@ -86,9 +86,13 @@ static LoRaWANInterface lorawan(radio);
  * Application specific callbacks
  */
 static lorawan_app_callbacks_t callbacks;
+
+// clang-format off
 static uint8_t DEV_EUI[] = { 0x86, 0x39, 0x32, 0x35, 0x59, 0x37, 0x91, 0x94 };
 static uint8_t APP_EUI[] = { 0x70, 0xb3, 0xd5, 0x7e, 0xd0, 0x00, 0xfc, 0xda };
-static uint8_t APP_KEY[] = { 0xf3,0x1c,0x2e,0x8b,0xc6,0x71,0x28,0x1d,0x51,0x16,0xf0,0x8f,0xf0,0xb7,0x92,0x8f };
+static uint8_t APP_KEY[] = { 0xf3, 0x1c, 0x2e, 0x8b, 0xc6, 0x71, 0x28, 0x1d, 0x51, 0x16, 0xf0, 0x8f, 0xf0, 0xb7, 0x92, 0x8f };
+// clang-format on
+
 /**
  * Entry point for application
  */
@@ -113,14 +117,12 @@ int main(void)
     lorawan.add_app_callbacks(&callbacks);
 
     // Set number of retries in case of CONFIRMED messages
-    if (lorawan.set_confirmed_msg_retries(CONFIRMED_MSG_RETRY_COUNTER)
-            != LORAWAN_STATUS_OK) {
+    if (lorawan.set_confirmed_msg_retries(CONFIRMED_MSG_RETRY_COUNTER) != LORAWAN_STATUS_OK) {
         printf("\r\n set_confirmed_msg_retries failed! \r\n\r\n");
         return -1;
     }
 
-    printf("\r\n CONFIRMED message retries : %d \r\n",
-           CONFIRMED_MSG_RETRY_COUNTER);
+    printf("\r\n CONFIRMED message retries : %d \r\n", CONFIRMED_MSG_RETRY_COUNTER);
 
     // Enable adaptive data rate
     if (lorawan.enable_adaptive_datarate() != LORAWAN_STATUS_OK) {
@@ -130,16 +132,15 @@ int main(void)
 
     printf("\r\n Adaptive data  rate (ADR) - Enabled \r\n");
     lorawan_connect_t connect_params;
-		connect_params.connect_type = LORAWAN_CONNECTION_OTAA;
-    connect_params.connection_u.otaa.dev_eui = DEV_EUI;
-    connect_params.connection_u.otaa.app_eui = APP_EUI;
-    connect_params.connection_u.otaa.app_key = APP_KEY;
+    connect_params.connect_type                = LORAWAN_CONNECTION_OTAA;
+    connect_params.connection_u.otaa.dev_eui   = DEV_EUI;
+    connect_params.connection_u.otaa.app_eui   = APP_EUI;
+    connect_params.connection_u.otaa.app_key   = APP_KEY;
     connect_params.connection_u.otaa.nb_trials = 3;
-		
+
     retcode = lorawan.connect(connect_params);
 
-    if (retcode == LORAWAN_STATUS_OK ||
-            retcode == LORAWAN_STATUS_CONNECT_IN_PROGRESS) {
+    if (retcode == LORAWAN_STATUS_OK || retcode == LORAWAN_STATUS_CONNECT_IN_PROGRESS) {
     } else {
         printf("\r\n Connection error, code = %d \r\n", retcode);
         return -1;
@@ -159,8 +160,8 @@ int main(void)
 static void send_message()
 {
     uint16_t packet_len;
-    int16_t retcode;
-    int32_t sensor_value;
+    int16_t  retcode;
+    int32_t  sensor_value;
 
     if (ds1820.begin()) {
         ds1820.startConversion();
@@ -172,20 +173,18 @@ static void send_message()
         return;
     }
 
-    packet_len = sprintf((char *) tx_buffer, "%d",
-                         sensor_value);
+    packet_len = sprintf((char*)tx_buffer, "%d", sensor_value);
 
-    retcode = lorawan.send(MBED_CONF_LORA_APP_PORT, tx_buffer, packet_len,
-                           MSG_UNCONFIRMED_FLAG);
-		//retcode = lorawan.send(MBED_CONF_LORA_APP_PORT, tx_buffer, packet_len,
+    retcode = lorawan.send(MBED_CONF_LORA_APP_PORT, tx_buffer, packet_len, MSG_UNCONFIRMED_FLAG);
+    // retcode = lorawan.send(MBED_CONF_LORA_APP_PORT, tx_buffer, packet_len,
     //                       MSG_CONFIRMED_FLAG);
 
     if (retcode < 0) {
         retcode == LORAWAN_STATUS_WOULD_BLOCK ? printf("send - WOULD BLOCK\r\n")
-        : printf("\r\n send() - Error code %d \r\n", retcode);
+                                              : printf("\r\n send() - Error code %d \r\n", retcode);
 
         if (retcode == LORAWAN_STATUS_WOULD_BLOCK) {
-            //retry in 3 seconds
+            // retry in 3 seconds
             if (MBED_CONF_LORA_DUTY_CYCLE_ON) {
                 ev_queue.call_in(3000, send_message);
             }
@@ -203,7 +202,7 @@ static void send_message()
 static void receive_message()
 {
     uint8_t port;
-    int flags;
+    int     flags;
     int16_t retcode = lorawan.receive(rx_buffer, sizeof(rx_buffer), port, flags);
 
     if (retcode < 0) {
@@ -216,7 +215,7 @@ static void receive_message()
         printf("%02x ", rx_buffer[i]);
     }
     printf("\r\n");
-    
+
     memset(rx_buffer, 0, sizeof(rx_buffer));
 }
 
@@ -260,10 +259,10 @@ static void lora_event_handler(lorawan_event_t event)
             receive_message();
             break;
         case RX_TIMEOUT:
-        case RX_ERROR:
+        case RX_ERROR: //
             printf("\r\n Error in reception - Code = %d \r\n", event);
             break;
-        case JOIN_FAILURE:
+        case JOIN_FAILURE: //
             printf("\r\n OTAA Failed - Check Keys \r\n");
             break;
         case UPLINK_REQUIRED:
@@ -272,7 +271,7 @@ static void lora_event_handler(lorawan_event_t event)
                 send_message();
             }
             break;
-        default:
+        default: //
             MBED_ASSERT("Unknown Event");
     }
 }
