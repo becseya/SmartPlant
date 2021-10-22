@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "app/utils/log.hpp"
 #include "mbed.h"
-#include <cstdio>
 
 // Blinking rate in milliseconds
 #define BLINKING_RATE 500ms
@@ -15,7 +15,7 @@ int main()
 
     while (true) {
         led = !led;
-        printf("LED is: %s\n", (led ? "On" : "Off"));
+        LOG_DEBUG("LED is: %s", (led ? "On" : "Off"))
         ThisThread::sleep_for(BLINKING_RATE);
     }
 }
