@@ -4,32 +4,23 @@
  */
 
 #include "app/mode_selector.hpp"
-#include "app/sensor.hpp"
+#include "app/sensors/MMA8451Q.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
 #include "mbed.h"
 
 using namespace SmartPlant;
 
-struct DummySensor : Sensor
-{
-    DummySensor()
-        : Sensor("DUMMY")
-    {}
-
-    bool init() final { return true; }
-    void update() final { LOG_SENSOR("%s", "This is a test"); }
-};
-
 // Hardware elements and other classes
+I2C          i2cBus(PB_9, PB_8);
 BusOut       modeLeds(LED1, LED2);
 ModeSelector modeSelector(PB_2, modeLeds);
 
 // Sensors
-DummySensor dummy;
+Sensors::MMA8451Q sAccelerometer(i2cBus);
 
 const auto sensors = make_array<Sensor*>( //
-    &dummy);
+    &sAccelerometer);
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
