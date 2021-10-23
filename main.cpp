@@ -9,7 +9,8 @@
 using namespace SmartPlant;
 
 // Hardware elements and other classes
-ModeSelector modeSelector(PB_2);
+BusOut       modeLeds(LED1, LED2);
+ModeSelector modeSelector(PB_2, modeLeds);
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 

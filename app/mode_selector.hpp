@@ -15,7 +15,7 @@ extern const char* modeToStr(Mode mode);
 class ModeSelector
 {
   public:
-    ModeSelector(PinName pin);
+    ModeSelector(PinName pin, BusOut& leds);
 
     void update();
     Mode getMode(bool refresh = true);
@@ -23,6 +23,7 @@ class ModeSelector
 
   private:
     InterruptIn myButton;
+    BusOut&     myLeds;
     bool        myButtonPressed;
     unsigned    myIdx;
 };

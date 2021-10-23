@@ -35,8 +35,9 @@ static unsigned getSleepSeconds(Mode mode)
 
 // --------------------------------------------------------------------------------------------------------------------
 
-ModeSelector::ModeSelector(PinName pin)
+ModeSelector::ModeSelector(PinName pin, BusOut& leds)
     : myButton(pin)
+    , myLeds(leds)
     , myButtonPressed(false)
     , myIdx(0)
 {
@@ -49,6 +50,7 @@ void ModeSelector::update()
         if (++myIdx == AVALIABLE_MODES.size())
             myIdx = 0;
 
+        myLeds = (1 << myIdx);
         LOG_DEBUG("New mode is: %s", modeToStr(getMode(false)))
 
         myButtonPressed = false;
