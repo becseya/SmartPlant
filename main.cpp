@@ -3,19 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "app/utils/log.hpp"
+#include "app/mode_selector.hpp"
 #include "mbed.h"
 
-// Blinking rate in milliseconds
-#define BLINKING_RATE 500ms
+using namespace SmartPlant;
+
+// Hardware elements and other classes
+ModeSelector modeSelector(PB_2);
+
+// -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
 int main()
 {
-    DigitalOut led(LED1);
-
     while (true) {
-        led = !led;
-        LOG_DEBUG("LED is: %s", (led ? "On" : "Off"))
-        ThisThread::sleep_for(BLINKING_RATE);
+        // update
+        modeSelector.update();
+
+        // sleep
+        modeSelector.sleep();
     }
 }
