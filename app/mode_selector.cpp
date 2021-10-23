@@ -7,8 +7,11 @@ using namespace SmartPlant;
 
 // --------------------------------------------------------------------------------------------------------------------
 
-#define SLEEP_TEST   2s
-#define SLEEP_NORMAL 30s
+#define SLEEP_QUANTA         100ms
+#define SLEEP_QUANTA_PER_SEC 10
+
+#define SLEEP_TEST_SEC   2
+#define SLEEP_NORMAL_SEC 30
 
 const auto AVALIABLE_MODES = make_array<Mode>(Mode::Test, Mode::Normal);
 
@@ -21,6 +24,16 @@ const char* SmartPlant::modeToStr(Mode mode)
         case Mode::Normal: return "Normal";
     }
 }
+
+static unsigned getSleepSeconds(Mode mode)
+{
+    switch (mode) {
+        case Mode::Test: return SLEEP_TEST_SEC;
+        case Mode::Normal: return SLEEP_NORMAL_SEC;
+    }
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 
 ModeSelector::ModeSelector(PinName pin)
     : myButton(pin)
@@ -52,8 +65,10 @@ Mode ModeSelector::getMode(bool refresh)
 
 void ModeSelector::sleep()
 {
-    switch (getMode()) {
-        case Mode::Test: ThisThread::sleep_for(SLEEP_TEST); break;
-        case Mode::Normal: ThisThread::sleep_for(SLEEP_NORMAL); break;
+    unsigned i      = 0;
+    unsigned quanta = SLEEP_QUANTA_PER_SEC * getSleepSeconds(getMode());
+
+    while ((i++ < quanta) && !myButtonPressed) {
+        ThisThread::sleep_for(SLEEP_QUANTA);
     }
 }
