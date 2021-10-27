@@ -4,6 +4,7 @@
  */
 
 #include "app/mode_selector.hpp"
+#include "app/sensors/Brightness.hpp"
 #include "app/sensors/MMA8451Q.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
@@ -17,10 +18,12 @@ BusOut       modeLeds(LED1, LED2);
 ModeSelector modeSelector(PB_2, modeLeds);
 
 // Sensors
-Sensors::MMA8451Q sAccelerometer(i2cBus);
+Sensors::MMA8451Q   sAccelerometer(i2cBus);
+Sensors::Brightness sBrightness(PA_4);
 
 const auto sensors = make_array<Sensor*>( //
-    &sAccelerometer);
+    &sAccelerometer,
+    &sBrightness);
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
