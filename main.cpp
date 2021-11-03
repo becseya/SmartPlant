@@ -6,6 +6,7 @@
 #include "app/mode_selector.hpp"
 #include "app/sensors/Brightness.hpp"
 #include "app/sensors/MMA8451Q.hpp"
+#include "app/sensors/SoilMoisture.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
 #include "mbed.h"
@@ -18,12 +19,14 @@ BusOut       modeLeds(LED1, LED2);
 ModeSelector modeSelector(PB_2, modeLeds);
 
 // Sensors
-Sensors::MMA8451Q   sAccelerometer(i2cBus);
-Sensors::Brightness sBrightness(PA_4);
+Sensors::MMA8451Q     sAccelerometer(i2cBus);
+Sensors::Brightness   sBrightness(PA_4);
+Sensors::SoilMoisture sSoilMoisture(PA_0);
 
 const auto sensors = make_array<Sensor*>( //
     &sAccelerometer,
-    &sBrightness);
+    &sBrightness,
+    &sSoilMoisture);
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
