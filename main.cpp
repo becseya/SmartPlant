@@ -5,6 +5,7 @@
 
 #include "app/mode_selector.hpp"
 #include "app/sensors/Brightness.hpp"
+#include "app/sensors/Gps.hpp"
 #include "app/sensors/MMA8451Q.hpp"
 #include "app/sensors/SoilMoisture.hpp"
 #include "app/utils/array.hpp"
@@ -22,11 +23,13 @@ ModeSelector modeSelector(PB_2, modeLeds);
 Sensors::MMA8451Q     sAccelerometer(i2cBus);
 Sensors::Brightness   sBrightness(PA_4);
 Sensors::SoilMoisture sSoilMoisture(PA_0);
+Sensors::Gps          sGps(PA_9, PA_10);
 
 const auto sensors = make_array<Sensor*>( //
     &sAccelerometer,
     &sBrightness,
-    &sSoilMoisture);
+    &sSoilMoisture,
+    &sGps);
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
