@@ -42,6 +42,7 @@ ModeSelector::ModeSelector(PinName pin, BusOut& leds)
     , myIdx(0)
 {
     myButton.fall([&]() -> void { myButtonPressed = true; });
+    showModeOnLeds();
 }
 
 void ModeSelector::update()
@@ -50,7 +51,7 @@ void ModeSelector::update()
         if (++myIdx == AVALIABLE_MODES.size())
             myIdx = 0;
 
-        myLeds = (1 << myIdx);
+        showModeOnLeds();
         LOG_DEBUG("New mode is: %s", modeToStr(getMode(false)))
 
         myButtonPressed = false;
@@ -63,6 +64,11 @@ Mode ModeSelector::getMode(bool refresh)
         update();
 
     return AVALIABLE_MODES[myIdx];
+}
+
+void ModeSelector::showModeOnLeds()
+{
+    myLeds = (1 << myIdx);
 }
 
 void ModeSelector::sleep()
