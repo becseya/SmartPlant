@@ -5,6 +5,7 @@
 
 #include "aggregation/Manager.hpp"
 #include "app/mode_selector.hpp"
+#include "app/RGBLed.hpp"
 #include "app/sensors/Brightness.hpp"
 #include "app/sensors/Gps.hpp"
 #include "app/sensors/MMA8451Q.hpp"
@@ -21,6 +22,7 @@ using namespace SmartPlant;
 I2C          i2cBus(PB_9, PB_8);
 BusOut       modeLeds(LED1, LED2);
 ModeSelector modeSelector(PB_2, modeLeds);
+RGBLed       rgbLed(PB_12, PA_12, PA_11);
 
 // Sensors
 Sensors::MMA8451Q     sAccelerometer(i2cBus);
@@ -70,6 +72,8 @@ int main()
         for (auto& s : sensors) {
             s->update();
         }
+
+        rgbLed.setColor(Color::COLOR_GREEN);
 
         // sleep
         modeSelector.sleep();
