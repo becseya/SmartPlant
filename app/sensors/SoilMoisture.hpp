@@ -18,6 +18,7 @@ class SoilMoisture : public Sensor
   private:
     float calculatePercentage(unsigned short raw);
 
+    // TODO 3: Copy aggregation the same way as it was done for Brightness
     AnalogIn analog;
 };
 

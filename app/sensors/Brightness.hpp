@@ -1,14 +1,19 @@
 #pragma once
 
+#include "../aggregation/ScalarAggregator.hpp"
 #include "../sensor.hpp"
 #include "mbed.h"
 
 namespace SmartPlant {
 namespace Sensors {
 
+using Aggregation::ScalarAggregator;
+
 class Brightness : public Sensor
 {
   public:
+    ScalarAggregator aggregator;
+
     Brightness(PinName pin);
 
     float readPercentage();
