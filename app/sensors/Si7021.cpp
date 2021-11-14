@@ -12,10 +12,6 @@
 #define DEVICE_ID        0x15
 #define FREQ             100000
 
-
-
-
-
 // --------------------------------------------------------------------------------------------------------------------
 
 using namespace SmartPlant::Sensors;
@@ -39,7 +35,7 @@ uint32_t Si7021::get_humidity()
 
 bool Si7021::init()
 {
-
+    return true;
 }
     
     // Check if the sensor is active and responding
@@ -59,7 +55,8 @@ bool Si7021::init()
 
 void Si7021::update()
 {
-   
+   measure();
+   LOG_SENSOR("", rhData, tData);
 }
 
 
