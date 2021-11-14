@@ -11,6 +11,7 @@
 #include "app/sensors/SoilMoisture.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
+#include "app/sensors/Si7021.hpp"
 #include "mbed.h"
 
 using namespace SmartPlant;
@@ -25,12 +26,14 @@ Sensors::MMA8451Q     sAccelerometer(i2cBus);
 Sensors::Brightness   sBrightness(PA_4);
 Sensors::SoilMoisture sSoilMoisture(PA_0);
 Sensors::Gps          sGps(PA_9, PA_10);
+Sensors::Si7021       sSi7021(PB_9,PB_8);
 
 const auto sensors = make_array<Sensor*>( //
     &sAccelerometer,
     &sBrightness,
     &sSoilMoisture,
-    &sGps);
+    &sGps,
+    &sSi7021);
 
 // Aggregation
 const auto aggregators = make_array<Aggregation::Aggregator*>( //
