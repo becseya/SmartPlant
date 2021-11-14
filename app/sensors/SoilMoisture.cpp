@@ -2,6 +2,7 @@
 
 #include "../utils/misc.hpp"
 
+#define SENSOR_NAME             "SOIL MOISTURE"
 #define SOIL_MOISTURE_VALUE_MIN (50)
 #define SOIL_MOISTURE_VALUE_MAX (10800)
 
@@ -12,6 +13,7 @@ using namespace SmartPlant::Sensors;
 SoilMoisture::SoilMoisture(PinName pin)
     : Sensor("SOIL MOISTURE")
     , analog(pin)
+    , aggregator(SENSOR_NAME, true)
 {}
 
 float SoilMoisture::readPercentage()
@@ -27,8 +29,11 @@ bool SoilMoisture::init()
 void SoilMoisture::update()
 {
     unsigned short raw = analog.read_u16();
+    float          soilmoisture = calculatePercentage(raw);
 
-    LOG_SENSOR("%.0f %%  (%u)", calculatePercentage(raw), raw);
+    aggregator.addSample(soilmoisture);
+
+    LOG_SENSOR("%.0f %%  (%u)", soilmoisture, raw);
 }
 
 float SoilMoisture::calculatePercentage(unsigned short raw)
