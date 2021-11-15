@@ -1,6 +1,5 @@
 #include "Si7021.hpp"
-
-#include "../utils/log.hpp"
+#include <cstdint>
 
 #define READ_TEMP  0xE0
 #define READ_RH    0xE5
@@ -21,16 +20,6 @@ Si7021::Si7021(PinName sda, PinName scl)
     , Sensor("TemperatureHumidity")
 {
     i2c.frequency(FREQ);
-}
-
-int32_t Si7021::get_temperature()
-{
-    return tData;
-}
-
-uint32_t Si7021::get_humidity()
-{
-    return rhData;
 }
 
 bool Si7021::init()
@@ -57,20 +46,24 @@ bool Si7021::check()
 
 void Si7021::update()
 {
-    measure();
-    LOG_SENSOR("", rhData, tData);
+    TempHumData data;
+    measure(&data);
+    LOG_SENSOR("%.1f C, %.1f %%", data.temp, data.humidity);
 }
 
-bool Si7021::measure()
+bool Si7021::measure(TempHumData* data)
 {
+    int16_t reg16;
+
     tx_buff[0] = READ_RH;
     if (i2c.write(ADDR, (char*)tx_buff, 1) != 0)
         return 0;
     if (i2c.read(ADDR, (char*)rx_buff, 2) != 0)
         return 0;
 
-    rhData = ((uint32_t)rx_buff[0] << 8) + (rx_buff[1] & 0xFC);
-    rhData = (((rhData)*15625L) >> 13) - 6000;
+    uint32_t rhData = ((uint32_t)rx_buff[0] << 8) + (rx_buff[1] & 0xFC);
+    rhData          = (((rhData)*15625L) >> 13) - 6000;
+    data->humidity  = (float)rhData / 1000;
 
     tx_buff[0] = READ_TEMP;
     if (i2c.write(ADDR, (char*)tx_buff, 1) != 0)
@@ -78,8 +71,9 @@ bool Si7021::measure()
     if (i2c.read(ADDR, (char*)rx_buff, 2) != 0)
         return 0;
 
-    tData = ((uint32_t)rx_buff[0] << 8) + (rx_buff[1] & 0xFC);
-    tData = (((tData)*21965L) >> 13) - 46850;
+    int32_t tData = ((uint32_t)rx_buff[0] << 8) + (rx_buff[1] & 0xFC);
+    tData         = (((tData)*21965L) >> 13) - 46850;
+    data->temp    = (float)tData / 1000;
 
     return 1;
 }
