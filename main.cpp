@@ -41,7 +41,9 @@ const auto aggregators = make_array<Aggregation::Aggregator*>( //
     &sAccelerometer.aggregatorY,
     &sAccelerometer.aggregatorZ,
     &sBrightness.aggregator,
-    &sSoilMoisture.aggregator);
+    &sSoilMoisture.aggregator,
+    &sTempHum.aggregatorTemp,
+    &sTempHum.aggregatorHumidity);
 
 Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 

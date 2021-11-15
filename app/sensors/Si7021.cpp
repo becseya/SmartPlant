@@ -15,6 +15,8 @@ using namespace SmartPlant::Sensors;
 Si7021::Si7021(I2C& bus)
     : I2cSlave(bus, DEVICE_ADDRESS)
     , Sensor("TEMP/HUM")
+    , aggregatorTemp("TEMPERATURE", true)
+    , aggregatorHumidity("HUMIDITY", true)
 {}
 
 bool Si7021::init()
@@ -29,7 +31,11 @@ bool Si7021::init()
 void Si7021::update()
 {
     TempHumData data;
+
     measure(&data);
+    aggregatorTemp.addSample(data.temp);
+    aggregatorHumidity.addSample(data.humidity);
+
     LOG_SENSOR("%.1f C, %.1f %%", data.temp, data.humidity);
 }
 
