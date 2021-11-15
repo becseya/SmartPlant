@@ -11,6 +11,18 @@ void I2cSlave::readRegs(char reg_address, uint8_t* data, int len)
     myBus.read(myAddress, (char*)data, len);
 }
 
+char I2cSlave::readReg16(uint16_t reg_address)
+{
+    char buffer[2];
+
+    buffer[0] = reg_address >> 8;
+    buffer[1] = reg_address;
+    myBus.write(myAddress, buffer, sizeof(buffer), true);
+    myBus.read(myAddress, buffer, 1);
+
+    return buffer[0];
+}
+
 char I2cSlave::readReg(char reg_address)
 {
     uint8_t c = 0;
