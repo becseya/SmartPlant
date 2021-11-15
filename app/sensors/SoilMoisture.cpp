@@ -11,7 +11,7 @@
 using namespace SmartPlant::Sensors;
 
 SoilMoisture::SoilMoisture(PinName pin)
-    : Sensor("SOIL MOISTURE")
+    : Sensor(SENSOR_NAME)
     , analog(pin)
     , aggregator(SENSOR_NAME, true)
 {}
@@ -28,7 +28,7 @@ bool SoilMoisture::init()
 
 void SoilMoisture::update()
 {
-    unsigned short raw = analog.read_u16();
+    unsigned short raw          = analog.read_u16();
     float          soilmoisture = calculatePercentage(raw);
 
     aggregator.addSample(soilmoisture);

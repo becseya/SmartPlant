@@ -1,12 +1,7 @@
 #include "Aggregator.hpp"
 
+using namespace SmartPlant::Aggregation;
 
-void reset()
-{
-
-} 
-
-void printResult()
-{
-
-}
+Aggregator::Aggregator(const char* name)
+    : name(name)
+{}
