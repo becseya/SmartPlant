@@ -14,7 +14,7 @@ using namespace SmartPlant::Sensors;
 
 Si7021::Si7021(I2C& bus)
     : I2cSlave(bus, DEVICE_ADDRESS)
-    , Sensor("TemperatureHumidity")
+    , Sensor("TEMP/HUM")
 {}
 
 bool Si7021::init()
