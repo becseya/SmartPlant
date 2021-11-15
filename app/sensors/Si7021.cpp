@@ -24,13 +24,6 @@ Si7021::Si7021(PinName sda, PinName scl)
 
 bool Si7021::init()
 {
-    return true;
-}
-
-// Check if the sensor is active and responding
-
-bool Si7021::check()
-{
     tx_buff[0] = READ_ID2_1;
     tx_buff[1] = READ_ID2_2;
     if (i2c.write(ADDR, (char*)tx_buff, 2) != 0)
@@ -38,10 +31,7 @@ bool Si7021::check()
     if (i2c.read(ADDR, (char*)rx_buff, 8) != 0)
         return 0;
 
-    if (rx_buff[0] == DEVICE_ID)
-        return true;
-    else
-        return 0;
+    return (rx_buff[0] == DEVICE_ID);
 }
 
 void Si7021::update()

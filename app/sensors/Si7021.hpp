@@ -18,7 +18,6 @@ class Si7021 : public Sensor
     Si7021(PinName sda, PinName scl);
 
     bool measure(TempHumData* data);
-    bool check();
     bool init() final;
     void update() final;
 
