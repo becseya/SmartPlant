@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../sensor.hpp"
+#include "../utils/i2c_slave.hpp"
 #include "mbed.h"
 
 namespace SmartPlant {
@@ -12,20 +13,14 @@ struct TempHumData
     float humidity;
 };
 
-class Si7021 : public Sensor
+class Si7021 : protected I2cSlave, public Sensor
 {
   public:
-    Si7021(PinName sda, PinName scl);
+    Si7021(I2C& bus);
 
-    bool measure(TempHumData* data);
+    void measure(TempHumData* data);
     bool init() final;
     void update() final;
-
-  private:
-    I2C i2c;
-
-    uint8_t rx_buff[8];
-    uint8_t tx_buff[2];
 };
 
 } // namespace Sensors

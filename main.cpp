@@ -26,7 +26,7 @@ Sensors::MMA8451Q     sAccelerometer(i2cBus);
 Sensors::Brightness   sBrightness(PA_4);
 Sensors::SoilMoisture sSoilMoisture(PA_0);
 Sensors::Gps          sGps(PA_9, PA_10);
-Sensors::Si7021       sSi7021(PB_9,PB_8);
+Sensors::Si7021       sSi7021(i2cBus);
 
 const auto sensors = make_array<Sensor*>( //
     &sAccelerometer,
