@@ -22,6 +22,8 @@ class ModeSelector
     void sleep();
 
   private:
+    void showModeOnLeds();
+
     InterruptIn myButton;
     BusOut&     myLeds;
     bool        myButtonPressed;

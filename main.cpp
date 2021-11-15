@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include "aggregation/Manager.hpp"
 #include "app/mode_selector.hpp"
 #include "app/sensors/Brightness.hpp"
 #include "app/sensors/Gps.hpp"
@@ -31,6 +32,16 @@ const auto sensors = make_array<Sensor*>( //
     &sSoilMoisture,
     &sGps);
 
+// Aggregation
+const auto aggregators = make_array<Aggregation::Aggregator*>( //
+    &sAccelerometer.aggregatorX,
+    &sAccelerometer.aggregatorY,
+    &sAccelerometer.aggregatorZ,
+    &sBrightness.aggregator,
+    &sSoilMoisture.aggregator);
+
+Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
+
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
 int main()
@@ -45,6 +56,7 @@ int main()
     while (true) {
         // update
         modeSelector.update();
+        aggregationManager.update(modeSelector.getMode(false) == Mode::Normal);
         for (auto& s : sensors) {
             s->update();
         }

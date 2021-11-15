@@ -2,6 +2,8 @@
 
 #include "../utils/log.hpp"
 
+#define SENSOR_NAME "ACCELEROMETER"
+
 #define DEVICE_ADDRESS 0x1C
 #define VAL_WHO_AM_I   0x1A
 #define REG_WHO_AM_I   0x0D
@@ -30,7 +32,10 @@ using namespace SmartPlant::Sensors;
 
 MMA8451Q::MMA8451Q(I2C& bus)
     : I2cSlave(bus, DEVICE_ADDRESS)
-    , Sensor("ACCELEROMETER")
+    , Sensor(SENSOR_NAME)
+    , aggregatorX(SENSOR_NAME "_X", false)
+    , aggregatorY(SENSOR_NAME "_Y", false)
+    , aggregatorZ(SENSOR_NAME "_Z", false)
 {}
 
 bool MMA8451Q::init()
@@ -49,6 +54,10 @@ void MMA8451Q::update()
     axes_data_t data;
 
     readAxesData(&data);
+    aggregatorX.addSample(data.x);
+    aggregatorY.addSample(data.y);
+    aggregatorZ.addSample(data.z);
+
     LOG_SENSOR("X=%f Y=%f Z=%f", data.x, data.y, data.z);
 }
 
