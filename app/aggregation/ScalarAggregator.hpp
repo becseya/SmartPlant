@@ -27,12 +27,45 @@ class ScalarAggregator : public Aggregator
         // TODO 1: add update logic for min/max
     }
 
+    void  update() 
+    {
+
+    }
+
     void reset() final
     {
         sum     = 0;
         samples = 0;
         // TODO 1: add reset logic for min/max (use FLOAT_MIN, FLOAT_MAX macros)
+      
+        printf("enter the number of samples:"); 
+        scanf("%d", &samples);   
+        max=samples;                                   
+        min=samples;    
+        do
+        {
+            if(samples!=-1)
+            {
+                if(samples>max)
+                
+                     max=samples;  
+                
+                else 
+                if (samples<min) 
+                
+                    min=samples;
+                    printf("enter the number of samples:"); 
+                    scanf("%d", &samples);                           
+            }
+        }
+            while(samples!=-1);       
+            printf("the maximum %.6f is : ", max);
+            printf("the minimum %.6f is ", min);                    
     }
+
+
+
+
 
     void printResult() final
     {
