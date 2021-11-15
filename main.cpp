@@ -60,6 +60,7 @@ int main()
 
     while (true) {
         // update
+        LOG("") // extra new line
         modeSelector.update();
         aggregationManager.update(modeSelector.getMode(false) == Mode::Normal);
         for (auto& s : sensors) {
