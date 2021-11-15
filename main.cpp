@@ -55,8 +55,8 @@ int main()
 
     while (true) {
         // update
-        aggregationManager.update();
         modeSelector.update();
+        aggregationManager.update(modeSelector.getMode(false) == Mode::Normal);
         for (auto& s : sensors) {
             s->update();
         }
