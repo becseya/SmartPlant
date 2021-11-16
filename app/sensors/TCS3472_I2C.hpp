@@ -28,7 +28,9 @@ class TCS3472_I2C : public Sensor, protected I2cSlave
     bool init() final;
     void update() final;
 
-    void  measure(ColorData* data);
+    const ColorData& getLastMeasurement();
+    void             measure(ColorData* data);
+
     int   enablePower();
     int   disablePower();
     bool  isPowerEnabled();
@@ -69,6 +71,8 @@ class TCS3472_I2C : public Sensor, protected I2cSlave
     Color calculateDominantColor(int r, int g, int b);
 
     float roundTowardsZero(const float value);
+
+    ColorData lastMeasurement;
 };
 
 } // namespace Sensors

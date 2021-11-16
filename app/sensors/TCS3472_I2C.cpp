@@ -51,7 +51,7 @@ bool TCS3472_I2C::init()
 
 void TCS3472_I2C::update()
 {
-    ColorData data;
+    ColorData& data = lastMeasurement;
 
     measure(&data);
     data.dominantColor = calculateDominantColor(data.r, data.g, data.b);
@@ -79,6 +79,23 @@ Color TCS3472_I2C::calculateDominantColor(int r, int g, int b)
         return Color::COLOR_BLUE;
     else
         return Color::COLOR_CLEAR;
+}
+
+const ColorData& TCS3472_I2C::getLastMeasurement()
+{
+    return lastMeasurement;
+}
+
+void TCS3472_I2C::measure(ColorData* data)
+{
+    char buffer[8] = { 0 };
+
+    readMultipleRegisters(CDATA, buffer, 8);
+
+    data->clear = (int)buffer[1] << 8 | (int)buffer[0];
+    data->r     = (int)buffer[3] << 8 | (int)buffer[2];
+    data->g     = (int)buffer[5] << 8 | (int)buffer[4];
+    data->b     = (int)buffer[7] << 8 | (int)buffer[6];
 }
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -111,18 +128,6 @@ int TCS3472_I2C::readMultipleRegisters(char address, char* output, int quantity)
 }
 
 // --------------------------------------------------------------------------------------------------------------------
-
-void TCS3472_I2C::measure(ColorData* data)
-{
-    char buffer[8] = { 0 };
-
-    readMultipleRegisters(CDATA, buffer, 8);
-
-    data->clear = (int)buffer[1] << 8 | (int)buffer[0];
-    data->r     = (int)buffer[3] << 8 | (int)buffer[2];
-    data->g     = (int)buffer[5] << 8 | (int)buffer[4];
-    data->b     = (int)buffer[7] << 8 | (int)buffer[6];
-}
 
 int TCS3472_I2C::enablePower()
 {

@@ -4,8 +4,8 @@
  */
 
 #include "aggregation/Manager.hpp"
-#include "app/mode_selector.hpp"
 #include "app/RGBLed.hpp"
+#include "app/mode_selector.hpp"
 #include "app/sensors/Brightness.hpp"
 #include "app/sensors/Gps.hpp"
 #include "app/sensors/MMA8451Q.hpp"
@@ -73,7 +73,14 @@ int main()
             s->update();
         }
 
-        rgbLed.setColor(Color::COLOR_GREEN);
+        // mode related functionalities
+        switch (modeSelector.getMode()) {
+            case Mode::Test: //
+                rgbLed.setColor(sColor.getLastMeasurement().dominantColor);
+                break;
+            default: //
+                break;
+        }
 
         // sleep
         modeSelector.sleep();
