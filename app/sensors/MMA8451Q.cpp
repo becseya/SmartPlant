@@ -20,8 +20,14 @@
 #define MASK_PL_LOCKOUT 0b01000000
 #define MASK_PL_LAPO    0b00000110
 
+#define REG_PULSE_CFG       0x21
+#define REG_PULSE_SRC       0x22
+#define FLAG_PULSE_EA       (1 << 7)
+#define FLAG_PULSE_Z_SINGLE (1 << 4)
+
 #define REG_INT_SOURCE     0x0C
 #define FLAG_INT_EN_LNDPRT (1 << 4)
+#define FLAG_INT_EN_PULSE  (1 << 3)
 
 #define UINT14_MAX ((1 << 14) - 1)
 #define G_SCALE    (4096.0)
@@ -56,6 +62,7 @@ MMA8451Q::MMA8451Q(I2C& bus, PinName interruptPin)
     , interrupted(false)
     , lastPositionReg(0)
     , positionChanges(0)
+    , tapCount(0)
 {
     this->interruptPin.fall([&]() -> void { interrupted = true; });
 }
@@ -66,11 +73,12 @@ bool MMA8451Q::init()
     writeReg(REG_CTRL_REG_1, 0x00);
 
     // Setup extra functionalities
-    writeReg(REG_PL_CFG, 0b11000000); // enable detection, clear debounce on state change
-    writeReg(REG_PL_DEBOUNCE, 255);   // set maximal debounce to reduce noise
+    writeReg(REG_PL_CFG, 0b11000000);             // enable detection, clear debounce on state change
+    writeReg(REG_PL_DEBOUNCE, 255);               // set maximal debounce to reduce noise
+    writeReg(REG_PULSE_CFG, FLAG_PULSE_Z_SINGLE); // enable single tap detection on Z axis
 
     // enable interrupts
-    writeReg(REG_CTRL_REG_4, FLAG_INT_EN_LNDPRT);
+    writeReg(REG_CTRL_REG_4, FLAG_INT_EN_LNDPRT | FLAG_INT_EN_PULSE);
 
     // activate the device
     writeReg(REG_CTRL_REG_1, 0x01);
@@ -95,7 +103,7 @@ void MMA8451Q::update()
     handleInterrupt();
 
     LOG_SENSOR("X=%f Y=%f Z=%f", data.x, data.y, data.z);
-    LOG_SENSOR("Position changes: %u", positionChanges);
+    LOG_SENSOR("Position changes: %u, Taps: %u", positionChanges, tapCount);
 }
 
 void MMA8451Q::readAxesData(axes_data_t* data)
@@ -133,6 +141,12 @@ void MMA8451Q::handleInterrupt()
         }
 
         lastPositionReg = positionReg;
+    }
+    if (reg_interrupts & FLAG_INT_EN_PULSE) {
+        char pulseReg = readReg(REG_PULSE_SRC);
+
+        if ((pulseReg & FLAG_PULSE_EA) && (pulseReg & FLAG_PULSE_EA))
+            tapCount++;
     }
 
     interrupted = false;

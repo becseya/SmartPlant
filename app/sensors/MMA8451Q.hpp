@@ -37,6 +37,7 @@ class MMA8451Q : protected I2cSlave, public Sensor, public SleepInterrupter
     bool        interrupted;
     char        lastPositionReg;
     unsigned    positionChanges;
+    unsigned    tapCount;
 };
 
 } // namespace Sensors
