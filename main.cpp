@@ -50,7 +50,7 @@ Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
-Sensors::TCS3472_I2C sColor(PB_9, PB_8);
+Sensors::TCS3472_I2C sColor(i2cBus);
 
 int main()
 {

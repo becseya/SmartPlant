@@ -1,71 +1,60 @@
 #include "TCS3472_I2C.hpp"
+#include <cstdint>
 
 // Defines
-#define SLAVE_ADDRESS 0x29
+#define DEVICE_ADDRESS 0x29
 
-#define ENABLE  0x00
-#define ATIME   0x01
-#define WTIME   0x03
-#define AILTL   0x04
-#define AIHTL   0x06
-#define PERS    0x0C
-#define CONFIG  0x0D
-#define CONTROL 0x0F
-#define ID      0x12
-#define STATUS  0x13
-#define CDATA   0x14
-#define RDATA   0x16
-#define GDATA   0x18
-#define BDATA   0x1A
+#define ENABLE       0x00
+#define ATIME        0x01
+#define WTIME        0x03
+#define AILTL        0x04
+#define AIHTL        0x06
+#define PERS         0x0C
+#define CONFIG       0x0D
+#define CONTROL      0x0F
+#define ID           0x12
+#define STATUS       0x13
+#define CDATA        0x14
+#define RDATA        0x16
+#define GDATA        0x18
+#define BDATA        0x1A
+#define COMMAND_MASK 0b10100000
 
 // --------------------------------------------------------------------------------------------------------------------
 
 using namespace SmartPlant::Sensors;
 
-TCS3472_I2C::TCS3472_I2C(PinName sda, PinName scl)
-    : i2c(sda, scl)
+TCS3472_I2C::TCS3472_I2C(I2C& bus)
+    : I2cSlave(bus, DEVICE_ADDRESS)
 {
-    i2c.frequency(100000);
     enablePowerAndRGBC();
 }
 
-TCS3472_I2C::~TCS3472_I2C() {}
-
 int TCS3472_I2C::writeSingleRegister(char address, char data)
 {
-    char tx[2];
-    tx[0]   = address | 160; // 0d160 = 0b10100000
-    tx[1]   = data;
-    int ack = i2c.write(SLAVE_ADDRESS << 1, tx, 2);
-    return ack;
+    address |= COMMAND_MASK;
+    writeReg(address, data);
+    return 0;
 }
 
 int TCS3472_I2C::writeMultipleRegisters(char address, char* data, int quantity)
 {
-    char tx[quantity + 1];
-    tx[0] = address | 160;
-    for (int i = 1; i <= quantity; i++) {
-        tx[i] = data[i - 1];
-    }
-    int ack = i2c.write(SLAVE_ADDRESS << 1, tx, quantity + 1);
-    return ack;
+    address |= COMMAND_MASK;
+    writeRegs(address, (uint8_t*)data, quantity);
+    return 0;
 }
 
 char TCS3472_I2C::readSingleRegister(char address)
 {
-    char output  = 255;
-    char command = address | 160; // 0d160 = 0b10100000
-    i2c.write(SLAVE_ADDRESS << 1, &command, 1, true);
-    i2c.read(SLAVE_ADDRESS << 1, &output, 1);
-    return output;
+    address |= COMMAND_MASK;
+    return readReg(address);
 }
 
 int TCS3472_I2C::readMultipleRegisters(char address, char* output, int quantity)
 {
-    char command = address | 160; // 0d160 = 0b10100000
-    i2c.write(SLAVE_ADDRESS << 1, &command, 1, true);
-    int ack = i2c.read(SLAVE_ADDRESS << 1, output, quantity);
-    return ack;
+    address |= COMMAND_MASK;
+    readRegs(address, (uint8_t*)output, quantity);
+    return 0;
 }
 
 void TCS3472_I2C::getAllColors(int* readings)
@@ -367,8 +356,8 @@ int TCS3472_I2C::setInterruptPersistence(const int persistence)
 
 int TCS3472_I2C::clearInterrupt()
 {
-    char tx  = 230;
-    int  ack = i2c.write(SLAVE_ADDRESS << 1, &tx, 1);
+    uint8_t tx  = 230;
+    int     ack = write(&tx, 1);
     return ack;
 }
 

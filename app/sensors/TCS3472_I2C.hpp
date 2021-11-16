@@ -7,11 +7,10 @@
 namespace SmartPlant {
 namespace Sensors {
 
-class TCS3472_I2C
+class TCS3472_I2C : protected I2cSlave
 {
   public:
-    TCS3472_I2C(PinName sda, PinName scl);
-    ~TCS3472_I2C();
+    TCS3472_I2C(I2C& bus);
 
     void  getAllColors(int* readings);
     int   getClearData();
@@ -50,8 +49,6 @@ class TCS3472_I2C
     char  readStatusRegister();
 
   private:
-    I2C i2c;
-
     int  writeSingleRegister(char address, char data);
     int  writeMultipleRegisters(char address, char* data, int quantity);
     char readSingleRegister(char address);
