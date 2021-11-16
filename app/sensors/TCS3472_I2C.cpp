@@ -1,6 +1,8 @@
 #include "TCS3472_I2C.hpp"
 #include <cstdint>
 
+#define SENSOR_NAME "COLOR"
+
 // Defines
 #define DEVICE_ADDRESS 0x29
 #define DEVICE_ID      0x44
@@ -29,8 +31,9 @@ using namespace SmartPlant::Sensors;
 using SmartPlant::Color;
 
 TCS3472_I2C::TCS3472_I2C(I2C& bus)
-    : Sensor("COLOR")
+    : Sensor(SENSOR_NAME)
     , I2cSlave(bus, DEVICE_ADDRESS)
+    , aggregator(SENSOR_NAME)
 {}
 
 bool TCS3472_I2C::init()
@@ -52,6 +55,7 @@ void TCS3472_I2C::update()
 
     measure(&data);
     data.dominantColor = calculateDominantColor(data.r, data.g, data.b);
+    aggregator.addSample(data.dominantColor);
 
     LOG_SENSOR("R %d, G %d, B %d, Clear %d    %s", //
                data.r,

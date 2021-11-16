@@ -46,7 +46,8 @@ const auto aggregators = make_array<Aggregation::Aggregator*>( //
     &sBrightness.aggregator,
     &sSoilMoisture.aggregator,
     &sTempHum.aggregatorTemp,
-    &sTempHum.aggregatorHumidity);
+    &sTempHum.aggregatorHumidity,
+    &sColor.aggregator);
 
 Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 

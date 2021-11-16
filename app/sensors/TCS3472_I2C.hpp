@@ -1,12 +1,15 @@
 #pragma once
 
 #include "../Color.hpp"
+#include "../aggregation/ColorAggregator.hpp"
 #include "../sensor.hpp"
 #include "../utils/i2c_slave.hpp"
 #include "mbed.h"
 
 namespace SmartPlant {
 namespace Sensors {
+
+using Aggregation::ColorAggregator;
 
 struct ColorData
 {
@@ -18,6 +21,8 @@ struct ColorData
 class TCS3472_I2C : public Sensor, protected I2cSlave
 {
   public:
+    ColorAggregator aggregator;
+
     TCS3472_I2C(I2C& bus);
 
     bool init() final;
