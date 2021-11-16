@@ -13,8 +13,12 @@ class Aggregator
     virtual void reset()       = 0;
     virtual void printResult() = 0;
 
+    bool isOutsideLimit();
+    const char* getName();
+
   protected:
     const char* const name;
+    bool              outsideLimit;
 };
 
 #define LOG_AGGREGATOR(format, ...) LOG("%s: " format, name, __VA_ARGS__)

@@ -11,7 +11,7 @@ class RGBLed
     RGBLed(PinName PinR, PinName PinG, PinName PinB);
 
     void setColor(Color color);
-    void turnOff();
+    void setColor3Bit(uint8_t bitmask);
 
   private:
     DigitalOut pinR;

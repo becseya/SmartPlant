@@ -8,7 +8,7 @@ namespace Aggregation {
 class ScalarAggregator : public Aggregator
 {
   public:
-    ScalarAggregator(const char* name, bool printAverage);
+    ScalarAggregator(const char* name, bool printAverage, float limitLow, float limitHigh);
 
     void addSample(float sample);
 
@@ -16,11 +16,14 @@ class ScalarAggregator : public Aggregator
     void printResult() final;
 
   protected:
-    const bool printAverage;
-    float      sum;
-    float      min;
-    float      max;
-    int        samples;
+    const bool  printAverage;
+    const float limitLow;
+    const float limitHigh;
+
+    float sum;
+    float min;
+    float max;
+    int   samples;
 };
 
 } // namespace Aggregation

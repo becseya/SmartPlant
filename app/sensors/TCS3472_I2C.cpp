@@ -33,7 +33,7 @@ using SmartPlant::Color;
 TCS3472_I2C::TCS3472_I2C(I2C& bus)
     : Sensor(SENSOR_NAME)
     , I2cSlave(bus, DEVICE_ADDRESS)
-    , aggregator(SENSOR_NAME)
+    , aggregator(SENSOR_NAME, Color::COLOR_CLEAR)
 {}
 
 bool TCS3472_I2C::init()

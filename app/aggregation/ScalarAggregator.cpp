@@ -9,9 +9,11 @@
 
 using namespace SmartPlant::Aggregation;
 
-ScalarAggregator::ScalarAggregator(const char* name, bool printAverage)
+ScalarAggregator::ScalarAggregator(const char* name, bool printAverage, float limitLow, float limitHigh)
     : Aggregator(name)
     , printAverage(printAverage)
+    , limitLow(limitLow)
+    , limitHigh(limitHigh)
 {
     reset();
 }
@@ -25,6 +27,8 @@ void ScalarAggregator::addSample(float sample)
         min = sample;
     if (sample > max)
         max = sample;
+
+    outsideLimit = ((sample < limitLow) || (sample > limitHigh));
 }
 
 void ScalarAggregator::reset()

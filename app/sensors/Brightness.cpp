@@ -5,6 +5,8 @@
 #define SENSOR_NAME             "BRIGHTNESS"
 #define LIGHT_SCALING_VALUE_MIN (30)
 #define LIGHT_SCALING_VALUE_MAX (4000)
+#define LIGHT_LIMIT_LOW         (50)
+#define LIGHT_LIMIT_HIGH        (100)
 
 // --------------------------------------------------------------------------------------------------------------------
 
@@ -13,7 +15,7 @@ using namespace SmartPlant::Sensors;
 Brightness::Brightness(PinName pin)
     : Sensor(SENSOR_NAME)
     , analog(pin)
-    , aggregator(SENSOR_NAME, true)
+    , aggregator(SENSOR_NAME, true, LIGHT_LIMIT_LOW, LIGHT_LIMIT_HIGH)
 {}
 
 float Brightness::readPercentage()

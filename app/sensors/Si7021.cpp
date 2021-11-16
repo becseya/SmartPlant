@@ -8,6 +8,11 @@
 #define READ_RH   0xE5
 #define READ_ID2  0xFCC9
 
+#define HUMIDITY_LIMIT_LOW    (30)
+#define HUMIDITY_LIMIT_HIGH   (70)
+#define TEMPERATUR_LIMIT_LOW  (20)
+#define TEMPERATUR_LIMIT_HIGH (25)
+
 // --------------------------------------------------------------------------------------------------------------------
 
 using namespace SmartPlant::Sensors;
@@ -15,8 +20,8 @@ using namespace SmartPlant::Sensors;
 Si7021::Si7021(I2C& bus)
     : I2cSlave(bus, DEVICE_ADDRESS)
     , Sensor("TEMP/HUM")
-    , aggregatorTemp("TEMPERATURE", true)
-    , aggregatorHumidity("HUMIDITY", true)
+    , aggregatorTemp("TEMPERATURE", true, TEMPERATUR_LIMIT_LOW, TEMPERATUR_LIMIT_HIGH)
+    , aggregatorHumidity("HUMIDITY", true, HUMIDITY_LIMIT_LOW, HUMIDITY_LIMIT_HIGH)
 {}
 
 bool Si7021::init()

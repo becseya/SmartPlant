@@ -38,6 +38,22 @@ class Manager
         wasActive = isActive;
     }
 
+    unsigned getLimitErrorDescription()
+    {
+        unsigned ret  = 0;
+        unsigned mask = (1 << 0);
+
+        for (auto& a : aggregators) {
+            if (a->isOutsideLimit()) {
+                ret |= mask;
+                LOG_DEBUG("Outside limit: %s", a->getName());
+            }
+            mask <<= 1;
+        }
+
+        return ret;
+    }
+
   private:
     void resetAll()
     {

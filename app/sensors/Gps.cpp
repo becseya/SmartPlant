@@ -58,6 +58,11 @@ void Gps::update()
                lastInfo.valid ? ' ' : '!');
 }
 
+const GpsInfo& Gps::getLastMeasurement()
+{
+    return lastInfo;
+}
+
 bool Gps::parseLine(const char* line, GpsInfo* info)
 {
     if (!line)
