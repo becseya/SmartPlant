@@ -21,6 +21,7 @@ class Gps : public LineBufferedSerial<128>, public Sensor
 
     bool init() final;
     void update() final;
+
     const GpsInfo& getLastMeasurement();
 
   private:

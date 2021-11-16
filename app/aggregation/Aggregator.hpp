@@ -13,7 +13,7 @@ class Aggregator
     virtual void reset()       = 0;
     virtual void printResult() = 0;
 
-    bool isOutsideLimit();
+    bool        isOutsideLimit();
     const char* getName();
 
   protected:
