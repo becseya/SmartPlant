@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../Color.hpp"
 #include "../sensor.hpp"
 #include "../utils/i2c_slave.hpp"
 #include "mbed.h"
@@ -9,8 +10,9 @@ namespace Sensors {
 
 struct ColorData
 {
-    int r, g, b;
-    int clear;
+    int   r, g, b;
+    int   clear;
+    Color dominantColor;
 };
 
 class TCS3472_I2C : public Sensor, protected I2cSlave
@@ -58,6 +60,8 @@ class TCS3472_I2C : public Sensor, protected I2cSlave
     int  writeMultipleRegisters(char address, char* data, int quantity);
     char readSingleRegister(char address);
     int  readMultipleRegisters(char address, char* output, int quantity);
+
+    Color calculateDominantColor(int r, int g, int b);
 
     float roundTowardsZero(const float value);
 };

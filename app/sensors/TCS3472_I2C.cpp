@@ -21,9 +21,12 @@
 #define BDATA        0x1A
 #define COMMAND_MASK 0b10100000
 
+#define DOMINANT_TRESHOLD_PERCENTAGE 30
+
 // --------------------------------------------------------------------------------------------------------------------
 
 using namespace SmartPlant::Sensors;
+using SmartPlant::Color;
 
 TCS3472_I2C::TCS3472_I2C(I2C& bus)
     : Sensor("COLOR")
@@ -48,8 +51,30 @@ void TCS3472_I2C::update()
     ColorData data;
 
     measure(&data);
+    data.dominantColor = calculateDominantColor(data.r, data.g, data.b);
 
-    LOG_SENSOR("R %d, G %d, B %d, Clear %d", data.r, data.g, data.b, data.clear);
+    LOG_SENSOR("R %d, G %d, B %d, Clear %d    %s", //
+               data.r,
+               data.g,
+               data.b,
+               data.clear,
+               colorToString(data.dominantColor));
+}
+
+Color TCS3472_I2C::calculateDominantColor(int r, int g, int b)
+{
+    int r_th = r * (100 - DOMINANT_TRESHOLD_PERCENTAGE) / 100;
+    int g_th = g * (100 - DOMINANT_TRESHOLD_PERCENTAGE) / 100;
+    int b_th = b * (100 - DOMINANT_TRESHOLD_PERCENTAGE) / 100;
+
+    if (g < r_th && b < r_th)
+        return Color::COLOR_RED;
+    else if (r < g_th && b < g_th)
+        return Color::COLOR_GREEN;
+    else if (r < b_th && g < b_th)
+        return Color::COLOR_BLUE;
+    else
+        return Color::COLOR_CLEAR;
 }
 
 // --------------------------------------------------------------------------------------------------------------------
