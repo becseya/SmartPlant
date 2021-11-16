@@ -11,3 +11,8 @@ bool Aggregator::isOutsideLimit()
 {
     return outsideLimit;
 }
+
+const char* Aggregator::getName()
+{
+    return name;
+}

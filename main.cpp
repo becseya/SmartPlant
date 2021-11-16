@@ -89,6 +89,13 @@ int main()
                 timeCopy.tm_hour += GMT_OFFSET;
                 time_t ts = mktime(&timeCopy); // mktime will wrap extra hours
                 LOG("Local time: %s", ctime(&ts));
+
+                // Light led in different color depending on limit errors
+                unsigned desc = aggregationManager.getLimitErrorDescription();
+                if (desc == 0)
+                    rgbLed.setColor3Bit(0);
+                else
+                    rgbLed.setColor3Bit((desc % 7) + 1); // map to 3 bits in a way that at least one bit is always set
                 break;
         }
 

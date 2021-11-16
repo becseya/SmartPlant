@@ -14,6 +14,7 @@ class Aggregator
     virtual void printResult() = 0;
 
     bool isOutsideLimit();
+    const char* getName();
 
   protected:
     const char* const name;

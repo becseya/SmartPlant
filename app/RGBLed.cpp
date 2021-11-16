@@ -36,9 +36,9 @@ void RGBLed::setColor(Color color)
     }
 }
 
-void RGBLed::turnOff()
+void RGBLed::setColor3Bit(uint8_t bitmask)
 {
-    pinR = 0;
-    pinG = 0;
-    pinB = 0;
+    pinR = bitmask & (1 << 0);
+    pinG = bitmask & (1 << 1);
+    pinB = bitmask & (1 << 2);
 }
