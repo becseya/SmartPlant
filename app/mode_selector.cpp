@@ -7,8 +7,8 @@ using namespace SmartPlant;
 
 // --------------------------------------------------------------------------------------------------------------------
 
-#define SLEEP_QUANTA         100ms
-#define SLEEP_QUANTA_PER_SEC 10
+#define SLEEP_QUANTA         10ms
+#define SLEEP_QUANTA_PER_SEC 100
 
 #define SLEEP_TEST_SEC   2
 #define SLEEP_NORMAL_SEC 30
@@ -68,7 +68,7 @@ void ModeSelector::showModeOnLeds()
     myLeds = (1 << myIdx);
 }
 
-void ModeSelector::sleep()
+void ModeSelector::sleep(SleepInterrupter& interrupter)
 {
     update();
 
@@ -76,6 +76,9 @@ void ModeSelector::sleep()
     unsigned quanta = SLEEP_QUANTA_PER_SEC * getSleepSeconds(getMode());
 
     while ((i++ < quanta) && !myButtonPressed) {
+        if (interrupter.isInterrupted())
+            interrupter.handleInterrupt();
+
         ThisThread::sleep_for(SLEEP_QUANTA);
     }
 }
