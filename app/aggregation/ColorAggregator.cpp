@@ -5,8 +5,9 @@
 using namespace SmartPlant::Aggregation;
 using SmartPlant::Color;
 
-ColorAggregator::ColorAggregator(const char* name)
+ColorAggregator::ColorAggregator(const char* name, Color allowedColor)
     : Aggregator(name)
+    , allowedColor(allowedColor)
 {
     reset();
 }
@@ -16,6 +17,7 @@ void ColorAggregator::addSample(Color sample)
     int idx = static_cast<int>(sample);
 
     sums[idx]++;
+    outsideLimit = (sample != allowedColor);
 }
 
 void ColorAggregator::reset()

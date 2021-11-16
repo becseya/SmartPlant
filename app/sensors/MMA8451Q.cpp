@@ -15,6 +15,11 @@
 #define UINT14_MAX ((1 << 14) - 1)
 #define G_SCALE    (4096.0)
 
+#define G_LIMIT_A_LOW  (0.8)
+#define G_LIMIT_A_HIGH (1.2)
+#define G_LIMIT_B_LOW  (-0.2)
+#define G_LIMIT_B_HIGH (0.2)
+
 static float parse_register_to_float(uint8_t* ptr)
 {
     int16_t int_value;
@@ -33,9 +38,9 @@ using namespace SmartPlant::Sensors;
 MMA8451Q::MMA8451Q(I2C& bus)
     : I2cSlave(bus, DEVICE_ADDRESS)
     , Sensor(SENSOR_NAME)
-    , aggregatorX(SENSOR_NAME "_X", false)
-    , aggregatorY(SENSOR_NAME "_Y", false)
-    , aggregatorZ(SENSOR_NAME "_Z", false)
+    , aggregatorX(SENSOR_NAME "_X", false, G_LIMIT_B_LOW, G_LIMIT_B_HIGH)
+    , aggregatorY(SENSOR_NAME "_Y", false, G_LIMIT_B_LOW, G_LIMIT_B_HIGH)
+    , aggregatorZ(SENSOR_NAME "_Z", false, G_LIMIT_A_LOW, G_LIMIT_A_HIGH)
 {}
 
 bool MMA8451Q::init()
