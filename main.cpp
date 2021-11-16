@@ -10,6 +10,7 @@
 #include "app/sensors/MMA8451Q.hpp"
 #include "app/sensors/Si7021.hpp"
 #include "app/sensors/SoilMoisture.hpp"
+#include "app/sensors/TCS3472_I2C.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
 #include "mbed.h"
@@ -27,13 +28,15 @@ Sensors::Brightness   sBrightness(PA_4);
 Sensors::SoilMoisture sSoilMoisture(PA_0);
 Sensors::Gps          sGps(PA_9, PA_10);
 Sensors::Si7021       sTempHum(i2cBus);
+Sensors::TCS3472_I2C  sColor(i2cBus);
 
 const auto sensors = make_array<Sensor*>( //
     &sAccelerometer,
     &sBrightness,
     &sSoilMoisture,
     &sGps,
-    &sTempHum);
+    &sTempHum,
+    &sColor);
 
 // Aggregation
 const auto aggregators = make_array<Aggregation::Aggregator*>( //
@@ -43,7 +46,8 @@ const auto aggregators = make_array<Aggregation::Aggregator*>( //
     &sBrightness.aggregator,
     &sSoilMoisture.aggregator,
     &sTempHum.aggregatorTemp,
-    &sTempHum.aggregatorHumidity);
+    &sTempHum.aggregatorHumidity,
+    &sColor.aggregator);
 
 Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 
@@ -60,6 +64,7 @@ int main()
 
     while (true) {
         // update
+        LOG("") // extra new line
         modeSelector.update();
         aggregationManager.update(modeSelector.getMode(false) == Mode::Normal);
         for (auto& s : sensors) {
