@@ -12,6 +12,10 @@
 #define REG_OUT_Y_MSB  0x03
 #define REG_OUT_Z_MSB  0x05
 
+#define REG_PL_STATUS   0x10
+#define REG_PL_CFG      0x11
+#define REG_PL_DEBOUNCE 0x12
+
 #define UINT14_MAX ((1 << 14) - 1)
 #define G_SCALE    (4096.0)
 
@@ -45,6 +49,13 @@ MMA8451Q::MMA8451Q(I2C& bus)
 
 bool MMA8451Q::init()
 {
+    // dectivate device
+    writeReg(REG_CTRL_REG_1, 0x00);
+
+    // Setup extra functionalities
+    writeReg(REG_PL_CFG, 0b11000000); // enable detection, clear debounce on state change
+    writeReg(REG_PL_DEBOUNCE, 255);   // set maximal debounce to reduce noise
+
     // activate the device
     writeReg(REG_CTRL_REG_1, 0x01);
 
@@ -57,6 +68,10 @@ bool MMA8451Q::init()
 void MMA8451Q::update()
 {
     axes_data_t data;
+
+    char reg = readReg(REG_PL_STATUS);
+    if (reg & 0x80)
+        LOG_DEBUG("PL change: 0x%x", reg);
 
     readAxesData(&data);
     aggregatorX.addSample(data.x);
