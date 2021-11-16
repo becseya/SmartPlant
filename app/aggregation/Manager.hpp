@@ -12,7 +12,7 @@ namespace Aggregation {
 template<size_t N>
 class Manager
 {
-    static constexpr unsigned AGGREGATION_PERIOD_SECONDS = (30 * 60);
+    static constexpr unsigned AGGREGATION_PERIOD_SECONDS = (60 * 60); // every hour
 
   public:
     Manager(const std::array<Aggregator*, N>& aggregators)
