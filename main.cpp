@@ -10,6 +10,7 @@
 #include "app/sensors/MMA8451Q.hpp"
 #include "app/sensors/Si7021.hpp"
 #include "app/sensors/SoilMoisture.hpp"
+#include "app/sensors/TCS3472_I2C.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
 #include "mbed.h"
@@ -49,6 +50,8 @@ Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
+Sensors::TCS3472_I2C sColor(PB_9, PB_8);
+
 int main()
 {
     // init
@@ -58,6 +61,9 @@ int main()
             LOG("Failed to initialize %s!", s->getName())
     }
 
+    sColor.enablePowerAndRGBC();
+    sColor.setIntegrationTime(100);
+
     while (true) {
         // update
         LOG("") // extra new line
@@ -66,6 +72,14 @@ int main()
         for (auto& s : sensors) {
             s->update();
         }
+
+        int rgb_readings[4];
+        sColor.getAllColors(rgb_readings);
+        LOG("COLOR: red: %d, green: %d, blue: %d, clear: %d",
+            rgb_readings[0],
+            rgb_readings[1],
+            rgb_readings[2],
+            rgb_readings[3]);
 
         // sleep
         modeSelector.sleep();
