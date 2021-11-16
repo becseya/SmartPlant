@@ -68,7 +68,7 @@ int main()
         // update
         LOG("") // extra new line
         modeSelector.update();
-        aggregationManager.update(modeSelector.getMode(false) == Mode::Normal);
+        aggregationManager.update(modeSelector.getMode() == Mode::Normal);
         for (auto& s : sensors) {
             s->update();
         }

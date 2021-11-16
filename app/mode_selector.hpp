@@ -18,7 +18,7 @@ class ModeSelector
     ModeSelector(PinName pin, BusOut& leds);
 
     void update();
-    Mode getMode(bool refresh = true);
+    Mode getMode();
     void sleep();
 
   private:
