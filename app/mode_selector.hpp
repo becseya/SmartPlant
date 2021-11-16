@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SleepInterrupter.hpp"
 #include "mbed.h"
 
 namespace SmartPlant {
@@ -19,7 +20,7 @@ class ModeSelector
 
     void update();
     Mode getMode();
-    void sleep();
+    void sleep(SleepInterrupter& interrupter);
 
   private:
     void showModeOnLeds();
