@@ -7,16 +7,21 @@
 namespace SmartPlant {
 namespace Sensors {
 
-class TCS3472_I2C : protected I2cSlave
+struct ColorData
+{
+    int r, g, b;
+    int clear;
+};
+
+class TCS3472_I2C : public Sensor, protected I2cSlave
 {
   public:
     TCS3472_I2C(I2C& bus);
 
-    void  getAllColors(int* readings);
-    int   getClearData();
-    int   getRedData();
-    int   getGreenData();
-    int   getBlueData();
+    bool init() final;
+    void update() final;
+
+    void  measure(ColorData* data);
     int   enablePower();
     int   disablePower();
     bool  isPowerEnabled();

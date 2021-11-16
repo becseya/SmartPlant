@@ -28,13 +28,15 @@ Sensors::Brightness   sBrightness(PA_4);
 Sensors::SoilMoisture sSoilMoisture(PA_0);
 Sensors::Gps          sGps(PA_9, PA_10);
 Sensors::Si7021       sTempHum(i2cBus);
+Sensors::TCS3472_I2C  sColor(i2cBus);
 
 const auto sensors = make_array<Sensor*>( //
     &sAccelerometer,
     &sBrightness,
     &sSoilMoisture,
     &sGps,
-    &sTempHum);
+    &sTempHum,
+    &sColor);
 
 // Aggregation
 const auto aggregators = make_array<Aggregation::Aggregator*>( //
@@ -50,8 +52,6 @@ Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
-Sensors::TCS3472_I2C sColor(i2cBus);
-
 int main()
 {
     // init
@@ -61,9 +61,6 @@ int main()
             LOG("Failed to initialize %s!", s->getName())
     }
 
-    sColor.enablePowerAndRGBC();
-    sColor.setIntegrationTime(100);
-
     while (true) {
         // update
         LOG("") // extra new line
@@ -72,14 +69,6 @@ int main()
         for (auto& s : sensors) {
             s->update();
         }
-
-        int rgb_readings[4];
-        sColor.getAllColors(rgb_readings);
-        LOG("COLOR: red: %d, green: %d, blue: %d, clear: %d",
-            rgb_readings[0],
-            rgb_readings[1],
-            rgb_readings[2],
-            rgb_readings[3]);
 
         // sleep
         modeSelector.sleep();

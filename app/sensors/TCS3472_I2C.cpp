@@ -3,6 +3,7 @@
 
 // Defines
 #define DEVICE_ADDRESS 0x29
+#define DEVICE_ID      0x44
 
 #define ENABLE       0x00
 #define ATIME        0x01
@@ -25,10 +26,33 @@
 using namespace SmartPlant::Sensors;
 
 TCS3472_I2C::TCS3472_I2C(I2C& bus)
-    : I2cSlave(bus, DEVICE_ADDRESS)
+    : Sensor("COLOR")
+    , I2cSlave(bus, DEVICE_ADDRESS)
+{}
+
+bool TCS3472_I2C::init()
 {
+    char id;
+
     enablePowerAndRGBC();
+    setIntegrationTime(100);
+    id = readSingleRegister(ID);
+
+    LOG_DEBUG("ID: 0x%x", id);
+
+    return (id == DEVICE_ID);
 }
+
+void TCS3472_I2C::update()
+{
+    ColorData data;
+
+    measure(&data);
+
+    LOG_SENSOR("R %d, G %d, B %d, Clear %d", data.r, data.g, data.b, data.clear);
+}
+
+// --------------------------------------------------------------------------------------------------------------------
 
 int TCS3472_I2C::writeSingleRegister(char address, char data)
 {
@@ -57,48 +81,18 @@ int TCS3472_I2C::readMultipleRegisters(char address, char* output, int quantity)
     return 0;
 }
 
-void TCS3472_I2C::getAllColors(int* readings)
+// --------------------------------------------------------------------------------------------------------------------
+
+void TCS3472_I2C::measure(ColorData* data)
 {
     char buffer[8] = { 0 };
 
     readMultipleRegisters(CDATA, buffer, 8);
 
-    readings[0] = (int)buffer[1] << 8 | (int)buffer[0];
-    readings[1] = (int)buffer[3] << 8 | (int)buffer[2];
-    readings[2] = (int)buffer[5] << 8 | (int)buffer[4];
-    readings[3] = (int)buffer[7] << 8 | (int)buffer[6];
-}
-
-int TCS3472_I2C::getClearData()
-{
-    char buffer[2] = { 0 };
-    readMultipleRegisters(CDATA, buffer, 2);
-    int reading = (int)buffer[1] << 8 | (int)buffer[0];
-    return reading;
-}
-
-int TCS3472_I2C::getRedData()
-{
-    char buffer[2] = { 0 };
-    readMultipleRegisters(RDATA, buffer, 2);
-    int reading = (int)buffer[1] << 8 | (int)buffer[0];
-    return reading;
-}
-
-int TCS3472_I2C::getGreenData()
-{
-    char buffer[2] = { 0 };
-    readMultipleRegisters(GDATA, buffer, 2);
-    int reading = (int)buffer[1] << 8 | (int)buffer[0];
-    return reading;
-}
-
-int TCS3472_I2C::getBlueData()
-{
-    char buffer[2] = { 0 };
-    readMultipleRegisters(BDATA, buffer, 2);
-    int reading = (int)buffer[1] << 8 | (int)buffer[0];
-    return reading;
+    data->clear = (int)buffer[1] << 8 | (int)buffer[0];
+    data->r     = (int)buffer[3] << 8 | (int)buffer[2];
+    data->g     = (int)buffer[5] << 8 | (int)buffer[4];
+    data->b     = (int)buffer[7] << 8 | (int)buffer[6];
 }
 
 int TCS3472_I2C::enablePower()
