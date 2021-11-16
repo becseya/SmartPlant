@@ -52,17 +52,14 @@ void ModeSelector::update()
             myIdx = 0;
 
         showModeOnLeds();
-        LOG_DEBUG("New mode is: %s", modeToStr(getMode(false)))
+        LOG_DEBUG("New mode is: %s", modeToStr(getMode()))
 
         myButtonPressed = false;
     }
 }
 
-Mode ModeSelector::getMode(bool refresh)
+Mode ModeSelector::getMode()
 {
-    if (refresh)
-        update();
-
     return AVALIABLE_MODES[myIdx];
 }
 
@@ -73,6 +70,8 @@ void ModeSelector::showModeOnLeds()
 
 void ModeSelector::sleep()
 {
+    update();
+
     unsigned i      = 0;
     unsigned quanta = SLEEP_QUANTA_PER_SEC * getSleepSeconds(getMode());
 
