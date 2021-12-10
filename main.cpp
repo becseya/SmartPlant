@@ -24,6 +24,10 @@
 #include "lora_radio_helper.h"
 #include "trace_helper.h"
 
+// Inactive code depending on this compiler flag was removed
+// Make sure the configuration does not change
+static_assert(MBED_CONF_LORA_DUTY_CYCLE_ON, "Configuration is not compatible with this implementation");
+
 using namespace events;
 
 // Max payload size can be LORAMAC_PHY_MAXPAYLOAD.
@@ -32,17 +36,13 @@ using namespace events;
 uint8_t tx_buffer[30];
 uint8_t rx_buffer[30];
 
-/*
- * Sets up an application dependent transmission timer in ms. Used only when Duty Cycling is off for testing
- */
-#define TX_TIMER 10000
-
 /**
  * Maximum number of events for the event queue.
  * 10 is the safe number for the stack events, however, if application
  * also uses the queue for whatever purposes, this number should be increased.
  */
-#define MAX_NUMBER_OF_EVENTS 10
+#define MAX_NUMBER_OF_EVENTS   10
+#define EVENT_QUEUE_ALLOC_SIZE (MAX_NUMBER_OF_EVENTS * EVENTS_EVENT_SIZE)
 
 /**
  * Maximum number of retries for CONFIRMED messages before giving up
@@ -56,7 +56,7 @@ uint8_t rx_buffer[30];
  * providing an event queue to the stack that will be used for ISR deferment as
  * well as application information event queuing.
  */
-static EventQueue ev_queue(MAX_NUMBER_OF_EVENTS* EVENTS_EVENT_SIZE);
+static EventQueue ev_queue(EVENT_QUEUE_ALLOC_SIZE);
 
 /**
  * Event handler.
@@ -129,8 +129,7 @@ int main(void)
 
     retcode = lorawan.connect(connect_params);
 
-    if (retcode == LORAWAN_STATUS_OK || retcode == LORAWAN_STATUS_CONNECT_IN_PROGRESS) {
-    } else {
+    if (retcode != LORAWAN_STATUS_OK && retcode != LORAWAN_STATUS_CONNECT_IN_PROGRESS) {
         printf("\r\n Connection error, code = %d \r\n", retcode);
         return -1;
     }
@@ -158,19 +157,14 @@ static void send_message()
     sensor_value++;
 
     retcode = lorawan.send(MBED_CONF_LORA_APP_PORT, tx_buffer, packet_len, MSG_UNCONFIRMED_FLAG);
-    // retcode = lorawan.send(MBED_CONF_LORA_APP_PORT, tx_buffer, packet_len,
-    //                       MSG_CONFIRMED_FLAG);
 
     if (retcode < 0) {
-        retcode == LORAWAN_STATUS_WOULD_BLOCK ? printf("send - WOULD BLOCK\r\n")
-                                              : printf("\r\n send() - Error code %d \r\n", retcode);
-
         if (retcode == LORAWAN_STATUS_WOULD_BLOCK) {
-            // retry in 3 seconds
-            if (MBED_CONF_LORA_DUTY_CYCLE_ON) {
-                ev_queue.call_in(3000, send_message);
-            }
-        }
+            printf("send - WOULD BLOCK\r\n");
+            ev_queue.call_in(3000, send_message); // retry in 3 seconds
+        } else
+            printf("\r\n send() - Error code %d \r\n", retcode);
+
         return;
     }
 
@@ -209,12 +203,7 @@ static void lora_event_handler(lorawan_event_t event)
     switch (event) {
         case CONNECTED:
             printf("\r\n Connection - Successful \r\n");
-            if (MBED_CONF_LORA_DUTY_CYCLE_ON) {
-                send_message();
-            } else {
-                ev_queue.call_every(TX_TIMER, send_message);
-            }
-
+            send_message();
             break;
         case DISCONNECTED:
             ev_queue.break_dispatch();
@@ -222,9 +211,7 @@ static void lora_event_handler(lorawan_event_t event)
             break;
         case TX_DONE:
             printf("\r\n Message Sent to Network Server \r\n");
-            if (MBED_CONF_LORA_DUTY_CYCLE_ON) {
-                send_message();
-            }
+            send_message();
             break;
         case TX_TIMEOUT:
         case TX_ERROR:
@@ -232,9 +219,7 @@ static void lora_event_handler(lorawan_event_t event)
         case TX_SCHEDULING_ERROR:
             printf("\r\n Transmission Error - EventCode = %d \r\n", event);
             // try again
-            if (MBED_CONF_LORA_DUTY_CYCLE_ON) {
-                send_message();
-            }
+            send_message();
             break;
         case RX_DONE:
             printf("\r\n Received message from Network Server \r\n");
@@ -249,13 +234,9 @@ static void lora_event_handler(lorawan_event_t event)
             break;
         case UPLINK_REQUIRED:
             printf("\r\n Uplink required by NS \r\n");
-            if (MBED_CONF_LORA_DUTY_CYCLE_ON) {
-                send_message();
-            }
+            send_message();
             break;
         default: //
             MBED_ASSERT("Unknown Event");
     }
 }
-
-// EOF
