@@ -21,6 +21,7 @@
 #include "mbed.h"
 
 // Application helpers
+#include "../utils/log.hpp"
 #include "lora.hpp"
 #include "lora_radio_helper.h"
 #include "trace_helper.h"
@@ -45,6 +46,12 @@ using namespace events;
  * Maximum number of retries for CONFIRMED messages before giving up
  */
 #define CONFIRMED_MSG_RETRY_COUNTER 3
+
+#define LOG_ERROR_AND_RETURN(...)                                                                                      \
+    {                                                                                                                  \
+        LOG_ERROR(__VA_ARGS__);                                                                                        \
+        return -1;                                                                                                     \
+    }
 
 /**
  * This event queue is the global event queue for both the
@@ -96,7 +103,7 @@ static void send_message()
     retcode = myMessageBuilder(tx_buffer, sizeof(tx_buffer));
 
     if ((retcode <= 0) || (retcode > sizeof(tx_buffer))) {
-        printf("Failed to build message\r\n");
+        LOG_ERROR("Failed to build message");
         return;
     }
 
@@ -106,15 +113,15 @@ static void send_message()
 
     if (retcode < 0) {
         if (retcode == LORAWAN_STATUS_WOULD_BLOCK) {
-            printf("send - WOULD BLOCK\r\n");
+            LOG_DEBUG("TX would block. Reattempting...");
             ev_queue.call_in(3000, send_message); // retry in 3 seconds
         } else
-            printf("\r\n send() - Error code %d \r\n", retcode);
+            LOG_ERROR("TX failed (code %d)", retcode);
 
         return;
     }
 
-    printf("\r\n %d bytes scheduled for transmission \r\n", retcode);
+    LOG_DEBUG("%d bytes scheduled for transmission", retcode);
     memset(tx_buffer, 0, sizeof(tx_buffer));
 }
 
@@ -128,7 +135,7 @@ static void receive_message()
     int16_t retcode = lorawan.receive(rx_buffer, sizeof(rx_buffer), port, flags);
 
     if (retcode < 0) {
-        printf("\r\n receive() - Error code %d \r\n", retcode);
+        LOG_ERROR("RX failed. (code %d)", retcode);
         return;
     }
 
@@ -145,38 +152,38 @@ static void lora_event_handler(lorawan_event_t event)
 {
     switch (event) {
         case CONNECTED:
-            printf("\r\n Connection - Successful \r\n");
+            LOG("Connection - Successful");
             send_message();
             break;
         case DISCONNECTED:
             ev_queue.break_dispatch();
-            printf("\r\n Disconnected Successfully \r\n");
+            LOG("Disconnected Successfully");
             break;
         case TX_DONE:
-            printf("\r\n Message Sent to Network Server \r\n");
+            LOG_DEBUG("Message Sent to Network Server");
             send_message();
             break;
         case TX_TIMEOUT:
         case TX_ERROR:
         case TX_CRYPTO_ERROR:
         case TX_SCHEDULING_ERROR:
-            printf("\r\n Transmission Error - EventCode = %d \r\n", event);
+            LOG_ERROR("TX failed. EventCode = %d", event);
             // try again
             send_message();
             break;
         case RX_DONE:
-            printf("\r\n Received message from Network Server \r\n");
+            LOG_DEBUG("Received message from Network Server");
             receive_message();
             break;
         case RX_TIMEOUT:
         case RX_ERROR: //
-            printf("\r\n Error in reception - Code = %d \r\n", event);
+            LOG_ERROR("RX failed. EventCode = %d", event);
             break;
         case JOIN_FAILURE: //
-            printf("\r\n OTAA Failed - Check Keys \r\n");
+            LOG_ERROR("OTAA Failed - Check Keys");
             break;
         case UPLINK_REQUIRED:
-            printf("\r\n Uplink required by NS \r\n");
+            LOG_DEBUG("Uplink required by NS");
             send_message();
             break;
         default: //
@@ -195,32 +202,26 @@ int Lora::init()
     lorawan_status_t retcode;
 
     // Initialize LoRaWAN stack
-    if (lorawan.initialize(&ev_queue) != LORAWAN_STATUS_OK) {
-        printf("\r\n LoRa initialization failed! \r\n");
-        return -1;
-    }
+    if (lorawan.initialize(&ev_queue) != LORAWAN_STATUS_OK)
+        LOG_ERROR_AND_RETURN("LoRa initialization failed!");
 
-    printf("\r\n Mbed LoRaWANStack initialized \r\n");
+    LOG_DEBUG("Mbed LoRaWANStack initialized");
 
     // prepare application callbacks
     callbacks.events = mbed::callback(lora_event_handler);
     lorawan.add_app_callbacks(&callbacks);
 
     // Set number of retries in case of CONFIRMED messages
-    if (lorawan.set_confirmed_msg_retries(CONFIRMED_MSG_RETRY_COUNTER) != LORAWAN_STATUS_OK) {
-        printf("\r\n set_confirmed_msg_retries failed! \r\n\r\n");
-        return -1;
-    }
+    if (lorawan.set_confirmed_msg_retries(CONFIRMED_MSG_RETRY_COUNTER) != LORAWAN_STATUS_OK)
+        LOG_ERROR_AND_RETURN("set_confirmed_msg_retries failed!");
 
-    printf("\r\n CONFIRMED message retries : %d \r\n", CONFIRMED_MSG_RETRY_COUNTER);
+    LOG_DEBUG("CONFIRMED message retries : %d ", CONFIRMED_MSG_RETRY_COUNTER);
 
     // Enable adaptive data rate
-    if (lorawan.enable_adaptive_datarate() != LORAWAN_STATUS_OK) {
-        printf("\r\n enable_adaptive_datarate failed! \r\n");
-        return -1;
-    }
+    if (lorawan.enable_adaptive_datarate() != LORAWAN_STATUS_OK)
+        LOG_ERROR_AND_RETURN("enable_adaptive_datarate failed!");
 
-    printf("\r\n Adaptive data  rate (ADR) - Enabled \r\n");
+    LOG_DEBUG("Adaptive data  rate (ADR) - Enabled ");
     lorawan_connect_t connect_params;
     connect_params.connect_type                = LORAWAN_CONNECTION_OTAA;
     connect_params.connection_u.otaa.dev_eui   = DEV_EUI;
@@ -230,12 +231,10 @@ int Lora::init()
 
     retcode = lorawan.connect(connect_params);
 
-    if (retcode != LORAWAN_STATUS_OK && retcode != LORAWAN_STATUS_CONNECT_IN_PROGRESS) {
-        printf("\r\n Connection error, code = %d \r\n", retcode);
-        return -1;
-    }
+    if (retcode != LORAWAN_STATUS_OK && retcode != LORAWAN_STATUS_CONNECT_IN_PROGRESS)
+        LOG_ERROR_AND_RETURN("Connection error, code = %d", retcode);
 
-    printf("\r\n Connection - In Progress ...\r\n");
+    LOG_DEBUG("Connection - In Progress ...");
     return 0;
 }
 
