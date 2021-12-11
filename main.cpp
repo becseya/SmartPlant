@@ -82,10 +82,16 @@ static uint8_t APP_EUI[] = { 0x70, 0xb3, 0xd5, 0x7e, 0xd0, 0x00, 0xfc, 0xda };
 static uint8_t APP_KEY[] = { 0xf3, 0x1c, 0x2e, 0x8b, 0xc6, 0x71, 0x28, 0x1d, 0x51, 0x16, 0xf0, 0x8f, 0xf0, 0xb7, 0x92, 0x8f };
 // clang-format on
 
+using receive_handler_t = std::function<void(uint8_t port, const uint8_t* buffer, size_t size)>;
+using message_builder_t = std::function<int16_t(uint8_t* buffer, size_t size)>;
+
+static message_builder_t myMessageBuilder = nullptr;
+static receive_handler_t myReceiveHandler = nullptr;
+
 /**
  * Entry point for application
  */
-int main(void)
+int lora_init()
 {
     // setup tracing
     setup_trace();
@@ -135,11 +141,22 @@ int main(void)
     }
 
     printf("\r\n Connection - In Progress ...\r\n");
-
-    // make your event queue dispatching events forever
-    ev_queue.dispatch_forever();
-
     return 0;
+}
+
+void lora_infinite_loop(void)
+{
+    ev_queue.dispatch_forever();
+}
+
+void lora_setMessageBuilder(message_builder_t callback)
+{
+    myMessageBuilder = callback;
+}
+
+void lora_onReceive(receive_handler_t handler)
+{
+    myReceiveHandler = handler;
 }
 
 /**
@@ -150,11 +167,17 @@ static void send_message()
     uint16_t packet_len;
     int16_t  retcode;
 
-    // simulate sensor
-    static int32_t sensor_value = 0;
-    printf("\r\n Dummy Sensor Value = %d \r\n", sensor_value);
-    packet_len = sprintf((char*)tx_buffer, "%d", sensor_value);
-    sensor_value++;
+    if (!myMessageBuilder)
+        return;
+
+    retcode = myMessageBuilder(tx_buffer, sizeof(tx_buffer));
+
+    if ((retcode <= 0) || (retcode > sizeof(tx_buffer))) {
+        printf("Failed to build message\r\n");
+        return;
+    }
+
+    packet_len = retcode;
 
     retcode = lorawan.send(MBED_CONF_LORA_APP_PORT, tx_buffer, packet_len, MSG_UNCONFIRMED_FLAG);
 
@@ -186,11 +209,8 @@ static void receive_message()
         return;
     }
 
-    printf(" RX Data on port %u (%d bytes): ", port, retcode);
-    for (uint8_t i = 0; i < retcode; i++) {
-        printf("%02x ", rx_buffer[i]);
-    }
-    printf("\r\n");
+    if (myReceiveHandler)
+        myReceiveHandler(port, rx_buffer, retcode);
 
     memset(rx_buffer, 0, sizeof(rx_buffer));
 }
@@ -239,4 +259,33 @@ static void lora_event_handler(lorawan_event_t event)
         default: //
             MBED_ASSERT("Unknown Event");
     }
+}
+
+int main(void)
+{
+    lora_onReceive([](uint8_t port, const uint8_t* buffer, size_t size) -> void {
+        printf(" RX Data on port %u (%d bytes): ", port, size);
+
+        for (uint8_t i = 0; i < size; i++) {
+            printf("%02x ", rx_buffer[i]);
+        }
+
+        printf("\r\n");
+    });
+
+    lora_setMessageBuilder([](uint8_t* buffer, size_t size) -> int16_t {
+        // simulate sensor
+        static int32_t sensor_value = 0;
+
+        printf("\r\n Dummy Sensor Value = %d \r\n", sensor_value);
+        int packet_len = sprintf((char*)tx_buffer, "%d", sensor_value);
+        sensor_value++;
+
+        return packet_len;
+    });
+
+    lora_init();
+    lora_infinite_loop();
+
+    return 0;
 }
