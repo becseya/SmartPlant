@@ -166,3 +166,16 @@ void MMA8451Q::handleInterrupt()
 
     interrupted = false;
 }
+
+unsigned MMA8451Q::getPositionChanges()
+{
+    return positionChanges;
+}
+unsigned MMA8451Q::getTapCount()
+{
+    return tapCount;
+}
+unsigned MMA8451Q::getFreeFallCount()
+{
+    return freeFallCount;
+}

@@ -31,6 +31,10 @@ class MMA8451Q : protected I2cSlave, public Sensor
     void update() final;
     void handleInterrupt();
 
+    unsigned getPositionChanges();
+    unsigned getTapCount();
+    unsigned getFreeFallCount();
+
   private:
     InterruptIn interruptPin;
     bool        interrupted;
