@@ -1,7 +1,8 @@
 #pragma once
 
-#include "SleepInterrupter.hpp"
+#include "EventQueue.hpp"
 #include "mbed.h"
+#include <functional>
 
 namespace SmartPlant {
 
@@ -15,20 +16,25 @@ extern const char* modeToStr(Mode mode);
 
 class ModeSelector
 {
-  public:
-    ModeSelector(PinName pin, BusOut& leds);
+    using tick_function_t = std::function<void(Mode currentMode)>;
 
-    void update();
+  public:
+    ModeSelector(EventQueue& globalEvents, PinName pin, BusOut& leds);
+
     Mode getMode();
-    void sleep(SleepInterrupter& interrupter);
+    void onTick(tick_function_t callback);
 
   private:
+    void onButtonPress();
+    void update(bool force = false);
     void showModeOnLeds();
 
-    InterruptIn myButton;
-    BusOut&     myLeds;
-    bool        myButtonPressed;
-    unsigned    myIdx;
+    InterruptIn     myButton;
+    BusOut&         myLeds;
+    bool            myButtonPressed;
+    unsigned        myIdx;
+    unsigned        secondsPassed;
+    tick_function_t tickCallback;
 };
 
 } // namespace SmartPlant

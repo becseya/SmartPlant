@@ -17,16 +17,22 @@
 #include "app/utils/misc.hpp"
 #include "mbed.h"
 
+#define MAX_NUMBER_OF_GLOBAL_EVENTS 5
+
 using namespace SmartPlant;
+using GlobalEventQueue = SmartPlant::EventQueue;
+
+// global event queue
+GlobalEventQueue globalEvents(MAX_NUMBER_OF_GLOBAL_EVENTS);
 
 // Hardware elements and other classes
 I2C          i2cBus(PB_9, PB_8);
 BusOut       modeLeds(LED1, LED2);
-ModeSelector modeSelector(PB_2, modeLeds);
+ModeSelector modeSelector(globalEvents, PB_2, modeLeds);
 RGBLed       rgbLed(PB_12, PA_12, PA_11);
 
 // Sensors
-Sensors::MMA8451Q     sAccelerometer(i2cBus, PB_13);
+Sensors::MMA8451Q     sAccelerometer(i2cBus, PB_13, globalEvents);
 Sensors::Brightness   sBrightness(PA_4);
 Sensors::SoilMoisture sSoilMoisture(PA_0);
 Sensors::Gps          sGps(PA_9, PA_10);
@@ -58,6 +64,15 @@ Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 
 int main()
 {
+    // callbacks
+    modeSelector.onTick([&](Mode currentMode) -> void {
+        LOG("") // extra new line
+        aggregationManager.update(currentMode == Mode::Normal);
+        for (auto& s : sensors) {
+            s->update();
+        }
+    });
+
     // init
     LOG_DEBUG("Initializing %u sensors...", sensors.size())
     for (auto& s : sensors) {
@@ -65,16 +80,6 @@ int main()
             LOG("Failed to initialize %s!", s->getName())
     }
 
-    while (true) {
-        // update
-        LOG("") // extra new line
-        modeSelector.update();
-        aggregationManager.update(modeSelector.getMode() == Mode::Normal);
-        for (auto& s : sensors) {
-            s->update();
-        }
-
-        // sleep
-        modeSelector.sleep(sAccelerometer);
-    }
+    // infinite loop
+    globalEvents.dispatch_forever();
 }

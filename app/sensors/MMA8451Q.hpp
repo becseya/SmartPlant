@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../SleepInterrupter.hpp"
+#include "../EventQueue.hpp"
 #include "../aggregation/ScalarAggregator.hpp"
 #include "../sensor.hpp"
 #include "../utils/i2c_slave.hpp"
@@ -17,20 +17,19 @@ struct axes_data_t
     float z;
 };
 
-class MMA8451Q : protected I2cSlave, public Sensor, public SleepInterrupter
+class MMA8451Q : protected I2cSlave, public Sensor
 {
   public:
     ScalarAggregator aggregatorX;
     ScalarAggregator aggregatorY;
     ScalarAggregator aggregatorZ;
 
-    MMA8451Q(I2C& bus, PinName interruptPin);
+    MMA8451Q(I2C& bus, PinName interruptPin, EventQueue& globalEvents);
 
     void readAxesData(axes_data_t* data);
     bool init() final;
     void update() final;
-    bool isInterrupted() final;
-    void handleInterrupt() final;
+    void handleInterrupt();
 
   private:
     InterruptIn interruptPin;

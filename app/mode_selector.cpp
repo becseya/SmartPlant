@@ -7,8 +7,8 @@ using namespace SmartPlant;
 
 // --------------------------------------------------------------------------------------------------------------------
 
-#define SLEEP_QUANTA         10ms
-#define SLEEP_QUANTA_PER_SEC 100
+#define UPDATE_PERIOD      1s
+#define SECONDS_PER_UPDATE 1
 
 #define SLEEP_TEST_SEC   2
 #define SLEEP_NORMAL_SEC 30
@@ -35,27 +35,52 @@ static unsigned getSleepSeconds(Mode mode)
 
 // --------------------------------------------------------------------------------------------------------------------
 
-ModeSelector::ModeSelector(PinName pin, BusOut& leds)
+ModeSelector::ModeSelector(EventQueue& globalEvents, PinName pin, BusOut& leds)
     : myButton(pin)
     , myLeds(leds)
     , myButtonPressed(false)
     , myIdx(0)
+    , secondsPassed(0)
+    , tickCallback(nullptr)
 {
-    myButton.fall([&]() -> void { myButtonPressed = true; });
+    myButton.fall([&]() -> void { //
+        if (!myButtonPressed) {
+            globalEvents.call([&]() -> void { onButtonPress(); });
+            myButtonPressed = true;
+        }
+    });
+
+    globalEvents.call_every(UPDATE_PERIOD, [&]() -> void { update(); });
+
     showModeOnLeds();
 }
 
-void ModeSelector::update()
+void ModeSelector::onButtonPress()
 {
-    if (myButtonPressed) {
-        if (++myIdx == AVALIABLE_MODES.size())
-            myIdx = 0;
+    if (++myIdx == AVALIABLE_MODES.size())
+        myIdx = 0;
 
-        showModeOnLeds();
-        LOG_DEBUG("New mode is: %s", modeToStr(getMode()))
+    LOG_DEBUG("New mode is: %s", modeToStr(getMode()))
+    update(true);
+    showModeOnLeds();
+    myButtonPressed = false;
+}
 
-        myButtonPressed = false;
+void ModeSelector::update(bool force)
+{
+    secondsPassed += SECONDS_PER_UPDATE;
+
+    if (force || (secondsPassed >= getSleepSeconds(getMode()))) {
+        if (tickCallback != nullptr)
+            tickCallback(getMode());
+
+        secondsPassed = 0;
     }
+}
+
+void ModeSelector::onTick(tick_function_t tickCallback)
+{
+    this->tickCallback = tickCallback;
 }
 
 Mode ModeSelector::getMode()
@@ -66,19 +91,4 @@ Mode ModeSelector::getMode()
 void ModeSelector::showModeOnLeds()
 {
     myLeds = (1 << myIdx);
-}
-
-void ModeSelector::sleep(SleepInterrupter& interrupter)
-{
-    update();
-
-    unsigned i      = 0;
-    unsigned quanta = SLEEP_QUANTA_PER_SEC * getSleepSeconds(getMode());
-
-    while ((i++ < quanta) && !myButtonPressed) {
-        if (interrupter.isInterrupted())
-            interrupter.handleInterrupt();
-
-        ThisThread::sleep_for(SLEEP_QUANTA);
-    }
 }
