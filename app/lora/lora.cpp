@@ -24,7 +24,6 @@
 #include "../utils/log.hpp"
 #include "lora.hpp"
 #include "lora_radio_helper.h"
-#include "trace_helper.h"
 
 // Inactive code depending on this compiler flag was removed
 // Make sure the configuration does not change
@@ -195,9 +194,6 @@ static void lora_event_handler(lorawan_event_t event)
 
 int Lora::init()
 {
-    // setup tracing
-    setup_trace();
-
     // stores the status of a call to LoRaWAN protocol
     lorawan_status_t retcode;
 
