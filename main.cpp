@@ -7,6 +7,9 @@
 #include "app/utils/log.hpp"
 #include "mbed.h"
 
+// minimal for LoRa: 10
+events::EventQueue globalEvents(10 * EVENTS_EVENT_SIZE);
+
 int main(void)
 {
     Lora::onReceive([](uint8_t port, const uint8_t* buffer, size_t size) -> void {
@@ -25,8 +28,9 @@ int main(void)
         return packet_len;
     });
 
-    Lora::init();
-    Lora::infiniteLoop();
+    Lora::init(globalEvents);
+
+    globalEvents.dispatch_forever();
 
     return 0;
 }

@@ -59,7 +59,7 @@ using namespace events;
  * providing an event queue to the stack that will be used for ISR deferment as
  * well as application information event queuing.
  */
-static EventQueue ev_queue(EVENT_QUEUE_ALLOC_SIZE);
+static EventQueue* ev_queue;
 
 /**
  * Constructing Mbed LoRaWANInterface and passing it the radio object from lora_radio_helper.
@@ -113,7 +113,7 @@ static void send_message()
     if (retcode < 0) {
         if (retcode == LORAWAN_STATUS_WOULD_BLOCK) {
             LOG_DEBUG("TX would block. Reattempting...");
-            ev_queue.call_in(3000, send_message); // retry in 3 seconds
+            ev_queue->call_in(3000, send_message); // retry in 3 seconds
         } else
             LOG_ERROR("TX failed (code %d)", retcode);
 
@@ -154,8 +154,7 @@ static void lora_event_handler(lorawan_event_t event)
             LOG("Connection - Successful");
             send_message();
             break;
-        case DISCONNECTED:
-            ev_queue.break_dispatch();
+        case DISCONNECTED: //
             LOG("Disconnected Successfully");
             break;
         case TX_DONE:
@@ -192,13 +191,15 @@ static void lora_event_handler(lorawan_event_t event)
 
 // --------------------------------------------------------------------------------------------------------------------
 
-int Lora::init()
+int Lora::init(EventQueue& eventQueue)
 {
+    ev_queue = &eventQueue;
+
     // stores the status of a call to LoRaWAN protocol
     lorawan_status_t retcode;
 
     // Initialize LoRaWAN stack
-    if (lorawan.initialize(&ev_queue) != LORAWAN_STATUS_OK)
+    if (lorawan.initialize(ev_queue) != LORAWAN_STATUS_OK)
         LOG_ERROR_AND_RETURN("LoRa initialization failed!");
 
     LOG_DEBUG("Mbed LoRaWANStack initialized");
@@ -232,11 +233,6 @@ int Lora::init()
 
     LOG_DEBUG("Connection - In Progress ...");
     return 0;
-}
-
-void Lora::infiniteLoop()
-{
-    ev_queue.dispatch_forever();
 }
 
 void Lora::onReceive(receive_handler_t callback)
