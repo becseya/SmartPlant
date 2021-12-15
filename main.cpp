@@ -12,6 +12,7 @@
 #include "app/sensors/Si7021.hpp"
 #include "app/sensors/SoilMoisture.hpp"
 #include "app/sensors/TCS3472_I2C.hpp"
+#include "app/utils/BinaryBuilder.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
 #include "app/utils/misc.hpp"
@@ -20,7 +21,11 @@
 #define MAX_NUMBER_OF_GLOBAL_EVENTS 5
 
 using namespace SmartPlant;
-using GlobalEventQueue = SmartPlant::EventQueue;
+using GlobalEventQueue  = SmartPlant::EventQueue;
+using SensorDataBuilder = BinaryBuilder<32>;
+
+// fnction definitions
+void buildSensorData(SensorDataBuilder& builder);
 
 // global event queue
 GlobalEventQueue globalEvents(MAX_NUMBER_OF_GLOBAL_EVENTS);
@@ -59,6 +64,34 @@ const auto aggregators = make_array<Aggregation::Aggregator*>( //
     &sColor.aggregator);
 
 Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
+SensorDataBuilder                             sensorDataBuilder;
+
+// --------------------------------------------------------------------------------------------------------------------
+
+void buildSensorData(SensorDataBuilder& builder)
+{
+    auto gps = sGps.getLastMeasurement();
+
+    builder.append<int16_t>(sAccelerometer.aggregatorX.getLastSample() * 1000); // Accelerometer - x
+    builder.append<int16_t>(sAccelerometer.aggregatorY.getLastSample() * 1000); // Accelerometer - y
+    builder.append<int16_t>(sAccelerometer.aggregatorZ.getLastSample() * 1000); // Accelerometer - z
+    builder.append<uint16_t>(sAccelerometer.getPositionChanges());              // Accelerometer - flips
+    builder.append<uint16_t>(sAccelerometer.getTapCount());                     // Accelerometer - taps
+    builder.append<int16_t>(sBrightness.aggregator.getLastSample() * 100);      // Brightness
+    builder.append<int16_t>(sSoilMoisture.aggregator.getLastSample() * 100);    // Soil moisture
+
+    if (gps.valid) {
+        builder.append<float>(gps.lat); // Gps - lat
+        builder.append<float>(gps.lon); // Gps - lon
+    } else {
+        builder.append<float>(0); // Gps - lat
+        builder.append<float>(0); // Gps - lon
+    }
+
+    builder.append<int16_t>(sTempHum.aggregatorTemp.getLastSample() * 100);     // Temp
+    builder.append<int16_t>(sTempHum.aggregatorHumidity.getLastSample() * 100); // Hum
+    builder.append<char>(colorToString(sColor.aggregator.getLastSample())[0]);  // Color
+}
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
@@ -71,6 +104,10 @@ int main()
         for (auto& s : sensors) {
             s->update();
         }
+
+        sensorDataBuilder.reset();
+        buildSensorData(sensorDataBuilder);
+        LOG_DEBUG_BUFFER(sensorDataBuilder.getPtr(), sensorDataBuilder.getSize(), "Binary data: ");
     });
 
     // init
