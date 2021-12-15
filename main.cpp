@@ -37,7 +37,7 @@ ModeSelector modeSelector(globalEvents, PB_2, modeLeds);
 RGBLed       rgbLed(PB_12, PA_12, PA_11);
 
 // Sensors
-Sensors::MMA8451Q     sAccelerometer(i2cBus, PB_13, globalEvents);
+Sensors::MMA8451Q     sAccelerometer(i2cBus, PA_14, globalEvents);
 Sensors::Brightness   sBrightness(PA_4);
 Sensors::SoilMoisture sSoilMoisture(PA_0);
 Sensors::Gps          sGps(PA_9, PA_10);
