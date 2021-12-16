@@ -93,6 +93,7 @@ void buildSensorData(SensorDataBuilder& builder)
     builder.append<int16_t>(sTempHum.aggregatorTemp.getLastSample() * 100);     // Temp
     builder.append<int16_t>(sTempHum.aggregatorHumidity.getLastSample() * 100); // Hum
     builder.append<char>(colorToString(sColor.aggregator.getLastSample())[0]);  // Color
+    builder.append<char>(modeToStr(modeSelector.getMode())[0]);                 // Mode
 }
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------

@@ -39,10 +39,14 @@ function parsePayload(appeui, deveui, payload)
     setValue(appeui, deveui, "Temperature",  resiot_ba2sintBE16(resiot_baslice(bytes, 22, 24)) / 100.0)
     setValue(appeui, deveui, "Humidity",     resiot_ba2sintBE16(resiot_baslice(bytes, 24, 26)) / 100.0)
     colotChar =                                   resiot_ba2str(resiot_baslice(bytes, 26, 27))
+    modeChar =                                    resiot_ba2str(resiot_baslice(bytes, 27, 28))
 
     if not (lat == 0 and lon == 0) then
         setValue(appeui, deveui, "Latitude", lat)
         setValue(appeui, deveui, "Longitude", lon)
+        setValue(appeui, deveui, "GpsStatus", "Valid")
+    else
+        setValue(appeui, deveui, "GpsStatus", "No signal")
     end
 
   	if colotChar == "R" then
@@ -54,13 +58,19 @@ function parsePayload(appeui, deveui, payload)
     elseif colotChar == "C" then
     	setValue(appeui, deveui, "Color", "Clear")
     end
+
+    if modeChar == "T" then
+        setValue(appeui, deveui, "Mode", "Test")
+    elseif modeChar == "N" then
+    	setValue(appeui, deveui, "Mode", "Normal")
+    end
 end
 
 --Scene process starts here
 Origin = resiot_startfrom()
 
 if Origin == "Manual" then
-    payload = "fff603a3000100230011001700434221a7eec06d5133086c227452"
+    payload = "fff603a3000100230011001700434221a7eec06d5133086c22745254"
     appeui = "70b3d57ed000fcda"
     deveui = "8639323559379194"
 else
