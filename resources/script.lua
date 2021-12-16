@@ -37,13 +37,13 @@ function parsePayload(appeui, deveui, payload)
 
     -- Make sure format matches main.cpp
 
-	setValue(appeui, deveui, "AccX", getInt16(p) / 1000.0)        -- int16_t  - Accelerometer - x
-	setValue(appeui, deveui, "AccY", getInt16(p) / 1000.0)        -- int16_t  - Accelerometer - y
-	setValue(appeui, deveui, "AccZ", getInt16(p) / 1000.0)        -- int16_t  - Accelerometer - z
-	setValue(appeui, deveui, "AccFlips", getUInt16(p))            -- uint16_t - Accelerometer - flips
-	setValue(appeui, deveui, "AccTaps", getUInt16(p))             -- uint16_t - Accelerometer - taps
-	setValue(appeui, deveui, "Brightness", getInt16(p) / 100.0)   -- int16_t  - Brightness
-	setValue(appeui, deveui, "SoilMoisture", getInt16(p) / 100.0) -- int16_t  - Soil moisture
+    setValue(appeui, deveui, "AccX", getInt16(p) / 1000.0)        -- int16_t  - Accelerometer - x
+    setValue(appeui, deveui, "AccY", getInt16(p) / 1000.0)        -- int16_t  - Accelerometer - y
+    setValue(appeui, deveui, "AccZ", getInt16(p) / 1000.0)        -- int16_t  - Accelerometer - z
+    setValue(appeui, deveui, "AccFlips", getUInt16(p))            -- uint16_t - Accelerometer - flips
+    setValue(appeui, deveui, "AccTaps", getUInt16(p))             -- uint16_t - Accelerometer - taps
+    setValue(appeui, deveui, "Brightness", getInt16(p) / 100.0)   -- int16_t  - Brightness
+    setValue(appeui, deveui, "SoilMoisture", getInt16(p) / 100.0) -- int16_t  - Soil moisture
     lat = getFloat(p)                                             -- float    - Gps - lat
     lon = getFloat(p)                                             -- float    - Gps - lon
     setValue(appeui, deveui, "Temperature", getInt16(p) / 100.0)  -- int16_t  - Temp
@@ -59,20 +59,20 @@ function parsePayload(appeui, deveui, payload)
         setValue(appeui, deveui, "GpsStatus", "No signal")
     end
 
-  	if colotChar == "R" then
-    	setValue(appeui, deveui, "Color", "Red")
+      if colotChar == "R" then
+        setValue(appeui, deveui, "Color", "Red")
     elseif colotChar == "G" then
-    	setValue(appeui, deveui, "Color", "Green")
+        setValue(appeui, deveui, "Color", "Green")
     elseif colotChar == "B" then
-    	setValue(appeui, deveui, "Color", "Blue")
+        setValue(appeui, deveui, "Color", "Blue")
     elseif colotChar == "C" then
-    	setValue(appeui, deveui, "Color", "Clear")
+        setValue(appeui, deveui, "Color", "Clear")
     end
 
     if modeChar == "T" then
         setValue(appeui, deveui, "Mode", "Test")
     elseif modeChar == "N" then
-    	setValue(appeui, deveui, "Mode", "Normal")
+        setValue(appeui, deveui, "Mode", "Normal")
     end
 end
 
