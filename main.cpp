@@ -103,6 +103,7 @@ int main()
     // callbacks
     Lora::onReceive([](uint8_t port, const uint8_t* buffer, size_t size) -> void {
         LOG_DEBUG_BUFFER(buffer, size, " RX Data on port %u: ", port);
+        rgbLed.parseCommand((const char*)buffer, size);
     });
 
     Lora::setMessageBuilder([&](uint8_t* buffer, size_t size) -> int16_t {

@@ -1,6 +1,15 @@
 #include "RGBLed.hpp"
+#include <cstring>
 
 using namespace SmartPlant;
+
+static bool isBufferEqual(const char* str, const char* buffer, size_t size)
+{
+    if (strlen(str) != size)
+        return false;
+
+    return strstr(buffer, str);
+}
 
 RGBLed::RGBLed(PinName PinR, PinName PinG, PinName PinB)
     : pinR(PinR)
@@ -33,6 +42,19 @@ void RGBLed::setColor(Color color)
             break;
         default: //
             break;
+    }
+}
+
+void RGBLed::parseCommand(const char* buffer, size_t size)
+{
+    if (isBufferEqual("Green", buffer, size))
+        setColor(Color::COLOR_GREEN);
+    else if (isBufferEqual("Red", buffer, size))
+        setColor(Color::COLOR_RED);
+    else if (isBufferEqual("OFF", buffer, size)) {
+        pinR = 0;
+        pinG = 0;
+        pinB = 0;
     }
 }
 

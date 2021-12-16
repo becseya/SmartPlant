@@ -12,6 +12,7 @@ class RGBLed
 
     void setColor(Color color);
     void setColor3Bit(uint8_t bitmask);
+    void parseCommand(const char* buffer, size_t size);
 
   private:
     DigitalOut pinR;
