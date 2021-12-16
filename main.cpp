@@ -112,9 +112,8 @@ int main()
     modeSelector.onTick([&](Mode currentMode) -> void {
         LOG("") // extra new line
         aggregationManager.update(currentMode == Mode::Normal);
-        for (auto& s : sensors) {
+        for (auto& s : sensors)
             s->update();
-        }
 
         sensorDataBuilder.reset();
         buildSensorData(sensorDataBuilder);
@@ -127,7 +126,7 @@ int main()
     LOG_DEBUG("Initializing %u sensors...", sensors.size())
     for (auto& s : sensors) {
         if (!s->init())
-            LOG("Failed to initialize %s!", s->getName())
+            LOG_ERROR("Failed to initialize %s!", s->getName())
     }
 
     // infinite loop
