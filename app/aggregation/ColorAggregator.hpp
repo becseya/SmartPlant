@@ -11,7 +11,8 @@ class ColorAggregator : public Aggregator
   public:
     ColorAggregator(const char* name, Color allowedColor);
 
-    void addSample(Color sample);
+    void  addSample(Color sample);
+    Color getLastSample();
 
     void reset() final;
     void printResult() final;
@@ -21,6 +22,7 @@ class ColorAggregator : public Aggregator
 
     int         sums[Color::NUMBER_OF_COLORS];
     const Color allowedColor;
+    Color       lastSample;
 };
 
 } // namespace Aggregation

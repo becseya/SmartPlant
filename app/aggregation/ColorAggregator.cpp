@@ -14,10 +14,17 @@ ColorAggregator::ColorAggregator(const char* name, Color allowedColor)
 
 void ColorAggregator::addSample(Color sample)
 {
+    lastSample = sample;
+
     int idx = static_cast<int>(sample);
 
     sums[idx]++;
     outsideLimit = (sample != allowedColor);
+}
+
+Color ColorAggregator::getLastSample()
+{
+    return lastSample;
 }
 
 void ColorAggregator::reset()

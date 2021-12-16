@@ -10,12 +10,14 @@ class ScalarAggregator : public Aggregator
   public:
     ScalarAggregator(const char* name, bool printAverage, float limitLow, float limitHigh);
 
-    void addSample(float sample);
+    void  addSample(float sample);
+    float getLastSample();
 
     void reset() final;
     void printResult() final;
 
   protected:
+    float       lastSample;
     const bool  printAverage;
     const float limitLow;
     const float limitHigh;

@@ -58,7 +58,7 @@ static float parse_register_to_float(uint8_t* ptr)
 
 using namespace SmartPlant::Sensors;
 
-MMA8451Q::MMA8451Q(I2C& bus, PinName interruptPin)
+MMA8451Q::MMA8451Q(I2C& bus, PinName interruptPin, EventQueue& globalEvents)
     : I2cSlave(bus, DEVICE_ADDRESS)
     , Sensor(SENSOR_NAME)
     , aggregatorX(SENSOR_NAME "_X", false, G_LIMIT_B_LOW, G_LIMIT_B_HIGH)
@@ -71,7 +71,12 @@ MMA8451Q::MMA8451Q(I2C& bus, PinName interruptPin)
     , tapCount(0)
     , freeFallCount(0)
 {
-    this->interruptPin.fall([&]() -> void { interrupted = true; });
+    this->interruptPin.fall([&]() -> void { //
+        if (!interrupted) {
+            globalEvents.call([&]() -> void { this->handleInterrupt(); });
+            interrupted = true;
+        }
+    });
 }
 
 bool MMA8451Q::init()
@@ -125,11 +130,6 @@ void MMA8451Q::readAxesData(axes_data_t* data)
     data->z = parse_register_to_float(register_buffer + 4);
 }
 
-bool MMA8451Q::isInterrupted()
-{
-    return interrupted;
-}
-
 void MMA8451Q::handleInterrupt()
 {
     char reg_interrupts = readReg(REG_INT_SOURCE);
@@ -165,4 +165,17 @@ void MMA8451Q::handleInterrupt()
     }
 
     interrupted = false;
+}
+
+unsigned MMA8451Q::getPositionChanges()
+{
+    return positionChanges;
+}
+unsigned MMA8451Q::getTapCount()
+{
+    return tapCount;
+}
+unsigned MMA8451Q::getFreeFallCount()
+{
+    return freeFallCount;
 }

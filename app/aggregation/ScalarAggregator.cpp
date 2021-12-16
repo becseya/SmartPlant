@@ -20,6 +20,7 @@ ScalarAggregator::ScalarAggregator(const char* name, bool printAverage, float li
 
 void ScalarAggregator::addSample(float sample)
 {
+    lastSample = sample;
     sum += sample;
     samples++;
 
@@ -29,6 +30,11 @@ void ScalarAggregator::addSample(float sample)
         max = sample;
 
     outsideLimit = ((sample < limitLow) || (sample > limitHigh));
+}
+
+float ScalarAggregator::getLastSample()
+{
+    return lastSample;
 }
 
 void ScalarAggregator::reset()

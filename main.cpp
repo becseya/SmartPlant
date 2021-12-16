@@ -12,25 +12,32 @@
 #include "app/sensors/Si7021.hpp"
 #include "app/sensors/SoilMoisture.hpp"
 #include "app/sensors/TCS3472_I2C.hpp"
+#include "app/utils/BinaryBuilder.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
 #include "app/utils/misc.hpp"
 #include "mbed.h"
 
-#include <ctime>
-
-#define GMT_OFFSET 1
+#define MAX_NUMBER_OF_GLOBAL_EVENTS 5
 
 using namespace SmartPlant;
+using GlobalEventQueue  = SmartPlant::EventQueue;
+using SensorDataBuilder = BinaryBuilder<32>;
+
+// fnction definitions
+void buildSensorData(SensorDataBuilder& builder);
+
+// global event queue
+GlobalEventQueue globalEvents(MAX_NUMBER_OF_GLOBAL_EVENTS);
 
 // Hardware elements and other classes
 I2C          i2cBus(PB_9, PB_8);
 BusOut       modeLeds(LED1, LED2);
-ModeSelector modeSelector(PB_2, modeLeds);
+ModeSelector modeSelector(globalEvents, PB_2, modeLeds);
 RGBLed       rgbLed(PB_12, PA_12, PA_11);
 
 // Sensors
-Sensors::MMA8451Q     sAccelerometer(i2cBus, PB_13);
+Sensors::MMA8451Q     sAccelerometer(i2cBus, PA_14, globalEvents);
 Sensors::Brightness   sBrightness(PA_4);
 Sensors::SoilMoisture sSoilMoisture(PA_0);
 Sensors::Gps          sGps(PA_9, PA_10);
@@ -57,11 +64,52 @@ const auto aggregators = make_array<Aggregation::Aggregator*>( //
     &sColor.aggregator);
 
 Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
+SensorDataBuilder                             sensorDataBuilder;
+
+// --------------------------------------------------------------------------------------------------------------------
+
+void buildSensorData(SensorDataBuilder& builder)
+{
+    auto gps = sGps.getLastMeasurement();
+
+    builder.append<int16_t>(sAccelerometer.aggregatorX.getLastSample() * 1000); // Accelerometer - x
+    builder.append<int16_t>(sAccelerometer.aggregatorY.getLastSample() * 1000); // Accelerometer - y
+    builder.append<int16_t>(sAccelerometer.aggregatorZ.getLastSample() * 1000); // Accelerometer - z
+    builder.append<uint16_t>(sAccelerometer.getPositionChanges());              // Accelerometer - flips
+    builder.append<uint16_t>(sAccelerometer.getTapCount());                     // Accelerometer - taps
+    builder.append<int16_t>(sBrightness.aggregator.getLastSample() * 100);      // Brightness
+    builder.append<int16_t>(sSoilMoisture.aggregator.getLastSample() * 100);    // Soil moisture
+
+    if (gps.valid) {
+        builder.append<float>(gps.lat); // Gps - lat
+        builder.append<float>(gps.lon); // Gps - lon
+    } else {
+        builder.append<float>(0); // Gps - lat
+        builder.append<float>(0); // Gps - lon
+    }
+
+    builder.append<int16_t>(sTempHum.aggregatorTemp.getLastSample() * 100);     // Temp
+    builder.append<int16_t>(sTempHum.aggregatorHumidity.getLastSample() * 100); // Hum
+    builder.append<char>(colorToString(sColor.aggregator.getLastSample())[0]);  // Color
+}
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
 int main()
 {
+    // callbacks
+    modeSelector.onTick([&](Mode currentMode) -> void {
+        LOG("") // extra new line
+        aggregationManager.update(currentMode == Mode::Normal);
+        for (auto& s : sensors) {
+            s->update();
+        }
+
+        sensorDataBuilder.reset();
+        buildSensorData(sensorDataBuilder);
+        LOG_DEBUG_BUFFER(sensorDataBuilder.getPtr(), sensorDataBuilder.getSize(), "Binary data: ");
+    });
+
     // init
     LOG_DEBUG("Initializing %u sensors...", sensors.size())
     for (auto& s : sensors) {
@@ -69,37 +117,6 @@ int main()
             LOG("Failed to initialize %s!", s->getName())
     }
 
-    while (true) {
-        // update
-        LOG("") // extra new line
-        modeSelector.update();
-        aggregationManager.update(modeSelector.getMode() == Mode::Normal);
-        for (auto& s : sensors) {
-            s->update();
-        }
-
-        // mode related functionalities
-        switch (modeSelector.getMode()) {
-            case Mode::Test: //
-                rgbLed.setColor(sColor.getLastMeasurement().dominantColor);
-                break;
-            case Mode::Normal:
-                // Convert UTC to local time
-                tm timeCopy = sGps.getLastMeasurement().time;
-                timeCopy.tm_hour += GMT_OFFSET;
-                time_t ts = mktime(&timeCopy); // mktime will wrap extra hours
-                LOG("Local time: %s", ctime(&ts));
-
-                // Light led in different color depending on limit errors
-                unsigned desc = aggregationManager.getLimitErrorDescription();
-                if (desc == 0)
-                    rgbLed.setColor3Bit(0);
-                else
-                    rgbLed.setColor3Bit((desc % 7) + 1); // map to 3 bits in a way that at least one bit is always set
-                break;
-        }
-
-        // sleep
-        modeSelector.sleep(sAccelerometer);
-    }
+    // infinite loop
+    globalEvents.dispatch_forever();
 }
