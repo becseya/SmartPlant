@@ -119,6 +119,7 @@ int main()
 
         sensorDataBuilder.reset();
         buildSensorData(sensorDataBuilder);
+        Lora::initiateTransmit();
     });
 
     // init
