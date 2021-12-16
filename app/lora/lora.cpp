@@ -80,6 +80,9 @@ uint8_t rx_buffer[30];
 static Lora::message_builder_t myMessageBuilder;
 static Lora::receive_handler_t myReceiveHandler = nullptr;
 
+static bool isConnected = false;
+static bool isSending   = false;
+
 // clang-format off
 static uint8_t DEV_EUI[] = { 0x86, 0x39, 0x32, 0x35, 0x59, 0x37, 0x91, 0x94 };
 static uint8_t APP_EUI[] = { 0x70, 0xb3, 0xd5, 0x7e, 0xd0, 0x00, 0xfc, 0xda };
@@ -151,21 +154,23 @@ static void lora_event_handler(lorawan_event_t event)
 {
     switch (event) {
         case CONNECTED:
+            isConnected = true;
             LOG("Connection - Successful");
-            send_message();
             break;
         case DISCONNECTED: //
+            isConnected = false;
+            isSending = false;
             LOG("Disconnected Successfully");
             break;
         case TX_DONE:
+            isSending = false;
             LOG_DEBUG("Message Sent to Network Server");
-            send_message();
             break;
         case TX_TIMEOUT:
         case TX_ERROR:
         case TX_CRYPTO_ERROR:
         case TX_SCHEDULING_ERROR:
-            LOG_ERROR("TX failed. EventCode = %d", event);
+            LOG_ERROR("TX failed. EventCode = %d. Retrying...", event);
             // try again
             send_message();
             break;
@@ -182,6 +187,7 @@ static void lora_event_handler(lorawan_event_t event)
             break;
         case UPLINK_REQUIRED:
             LOG_DEBUG("Uplink required by NS");
+            isSending = true;
             send_message();
             break;
         default: //
@@ -243,4 +249,14 @@ void Lora::onReceive(receive_handler_t callback)
 void Lora::setMessageBuilder(message_builder_t callback)
 {
     myMessageBuilder = callback;
+}
+
+bool Lora::initiateTransmit()
+{
+    if (!isConnected || isSending)
+        return false;
+
+    ev_queue->call(send_message);
+    isSending = true;
+    return true;
 }

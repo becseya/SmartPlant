@@ -93,6 +93,7 @@ void buildSensorData(SensorDataBuilder& builder)
     builder.append<int16_t>(sTempHum.aggregatorTemp.getLastSample() * 100);     // Temp
     builder.append<int16_t>(sTempHum.aggregatorHumidity.getLastSample() * 100); // Hum
     builder.append<char>(colorToString(sColor.aggregator.getLastSample())[0]);  // Color
+    builder.append<char>(modeToStr(modeSelector.getMode())[0]);                 // Mode
 }
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
@@ -102,6 +103,7 @@ int main()
     // callbacks
     Lora::onReceive([](uint8_t port, const uint8_t* buffer, size_t size) -> void {
         LOG_DEBUG_BUFFER(buffer, size, " RX Data on port %u: ", port);
+        rgbLed.parseCommand((const char*)buffer, size);
     });
 
     Lora::setMessageBuilder([&](uint8_t* buffer, size_t size) -> int16_t {
@@ -112,12 +114,12 @@ int main()
     modeSelector.onTick([&](Mode currentMode) -> void {
         LOG("") // extra new line
         aggregationManager.update(currentMode == Mode::Normal);
-        for (auto& s : sensors) {
+        for (auto& s : sensors)
             s->update();
-        }
 
         sensorDataBuilder.reset();
         buildSensorData(sensorDataBuilder);
+        Lora::initiateTransmit();
     });
 
     // init
@@ -127,7 +129,7 @@ int main()
     LOG_DEBUG("Initializing %u sensors...", sensors.size())
     for (auto& s : sensors) {
         if (!s->init())
-            LOG("Failed to initialize %s!", s->getName())
+            LOG_ERROR("Failed to initialize %s!", s->getName())
     }
 
     // infinite loop
