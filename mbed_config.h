@@ -26,7 +26,6 @@
 #define LPTICKER_DELAY_TICKS                                                  0                                                                                                // set by target:MCU_STM32L072xZ
 #define MBED_CONF_ALT1250_PPP_BAUDRATE                                        115200                                                                                           // set by library:ALT1250_PPP
 #define MBED_CONF_ALT1250_PPP_PROVIDE_DEFAULT                                 0                                                                                                // set by library:ALT1250_PPP
-#define MBED_CONF_APP_MAIN_STACK_SIZE                                         2048                                                                                             // set by application[DISCO_L072CZ_LRWAN1]
 #define MBED_CONF_ATMEL_RF_ASSUME_SPACED_SPI                                  1                                                                                                // set by library:atmel-rf[STM]
 #define MBED_CONF_ATMEL_RF_FULL_SPI_SPEED                                     7500000                                                                                          // set by library:atmel-rf
 #define MBED_CONF_ATMEL_RF_FULL_SPI_SPEED_BYTE_SPACING                        250                                                                                              // set by library:atmel-rf
@@ -129,15 +128,15 @@
 #define MBED_CONF_GENERIC_AT3GPP_BAUDRATE                                     115200                                                                                           // set by library:GENERIC_AT3GPP
 #define MBED_CONF_GENERIC_AT3GPP_PROVIDE_DEFAULT                              0                                                                                                // set by library:GENERIC_AT3GPP
 #define MBED_CONF_LORA_ADR_ON                                                 1                                                                                                // set by library:lora
-#define MBED_CONF_LORA_APPLICATION_EUI                                        { 0x70, 0xb3, 0xd5, 0x7e, 0xd0, 0x00, 0xfc, 0xda }                                               // set by application[*]
-#define MBED_CONF_LORA_APPLICATION_KEY                                        { 0xf3,0x1c,0x2e,0x8b,0xc6,0x71,0x28,0x1d,0x51,0x16,0xf0,0x8f,0xf0,0xb7,0x92,0x8f }              // set by application[*]
+#define MBED_CONF_LORA_APPLICATION_EUI                                        {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}                                                 // set by library:lora
+#define MBED_CONF_LORA_APPLICATION_KEY                                        {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} // set by library:lora
 #define MBED_CONF_LORA_APPSKEY                                                {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} // set by library:lora
 #define MBED_CONF_LORA_APP_PORT                                               15                                                                                               // set by library:lora
 #define MBED_CONF_LORA_AUTOMATIC_UPLINK_MESSAGE                               1                                                                                                // set by library:lora
 #define MBED_CONF_LORA_DEVICE_ADDRESS                                         0x00000000                                                                                       // set by library:lora
-#define MBED_CONF_LORA_DEVICE_EUI                                             { 0x40, 0x39, 0x32, 0x35, 0x59, 0x37, 0x91, 0x94 }                                               // set by application[*]
+#define MBED_CONF_LORA_DEVICE_EUI                                             {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}                                                 // set by library:lora
 #define MBED_CONF_LORA_DOWNLINK_PREAMBLE_LENGTH                               5                                                                                                // set by library:lora
-#define MBED_CONF_LORA_DUTY_CYCLE_ON                                          1                                                                                                // set by application[*]
+#define MBED_CONF_LORA_DUTY_CYCLE_ON                                          1                                                                                                // set by library:lora
 #define MBED_CONF_LORA_DUTY_CYCLE_ON_JOIN                                     1                                                                                                // set by library:lora
 #define MBED_CONF_LORA_FSB_MASK                                               {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0x00FF}                                                         // set by library:lora
 #define MBED_CONF_LORA_FSB_MASK_CHINA                                         {0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF, 0xFFFF}                                                 // set by library:lora
@@ -145,8 +144,8 @@
 #define MBED_CONF_LORA_MAX_SYS_RX_ERROR                                       5                                                                                                // set by library:lora
 #define MBED_CONF_LORA_NB_TRIALS                                              12                                                                                               // set by library:lora
 #define MBED_CONF_LORA_NWKSKEY                                                {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00} // set by library:lora
-#define MBED_CONF_LORA_OVER_THE_AIR_ACTIVATION                                1                                                                                                // set by application[*]
-#define MBED_CONF_LORA_PHY                                                    EU868                                                                                            // set by application[*]
+#define MBED_CONF_LORA_OVER_THE_AIR_ACTIVATION                                1                                                                                                // set by library:lora
+#define MBED_CONF_LORA_PHY                                                    EU868                                                                                            // set by library:lora
 #define MBED_CONF_LORA_PUBLIC_NETWORK                                         1                                                                                                // set by library:lora
 #define MBED_CONF_LORA_TX_MAX_SIZE                                            64                                                                                               // set by library:lora
 #define MBED_CONF_LORA_UPLINK_PREAMBLE_LENGTH                                 8                                                                                                // set by library:lora
@@ -236,7 +235,6 @@
 #define MBED_CONF_MBED_MESH_API_WISUN_UC_CHANNEL_FUNCTION                     255                                                                                              // set by library:mbed-mesh-api
 #define MBED_CONF_MBED_MESH_API_WISUN_UC_DWELL_INTERVAL                       255                                                                                              // set by library:mbed-mesh-api
 #define MBED_CONF_MBED_MESH_API_WISUN_UC_FIXED_CHANNEL                        65535                                                                                            // set by library:mbed-mesh-api
-#define MBED_CONF_MBED_TRACE_ENABLE                                           0                                                                                                // set by application[*]
 #define MBED_CONF_MCR20A_PROVIDE_DEFAULT                                      0                                                                                                // set by library:mcr20a
 #define MBED_CONF_NANOSTACK_CONFIGURATION                                     nanostack_full                                                                                   // set by library:nanostack
 #define MBED_CONF_NANOSTACK_HAL_CRITICAL_SECTION_USABLE_FROM_INTERRUPT        0                                                                                                // set by library:nanostack-hal
@@ -263,7 +261,7 @@
 #define MBED_CONF_PLATFORM_CALLBACK_NONTRIVIAL                                0                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_CRASH_CAPTURE_ENABLED                              0                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_CTHUNK_COUNT_MAX                                   8                                                                                                // set by library:platform
-#define MBED_CONF_PLATFORM_DEFAULT_SERIAL_BAUD_RATE                           115200                                                                                           // set by application[*]
+#define MBED_CONF_PLATFORM_DEFAULT_SERIAL_BAUD_RATE                           9600                                                                                             // set by library:platform
 #define MBED_CONF_PLATFORM_ERROR_ALL_THREADS_INFO                             0                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_ERROR_FILENAME_CAPTURE_ENABLED                     0                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_ERROR_HIST_ENABLED                                 0                                                                                                // set by library:platform
@@ -275,9 +273,9 @@
 #define MBED_CONF_PLATFORM_MINIMAL_PRINTF_ENABLE_FLOATING_POINT               0                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_MINIMAL_PRINTF_SET_FLOATING_POINT_MAX_DECIMALS     6                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_POLL_USE_LOWPOWER_TIMER                            0                                                                                                // set by library:platform
-#define MBED_CONF_PLATFORM_STDIO_BAUD_RATE                                    115200                                                                                           // set by application[*]
+#define MBED_CONF_PLATFORM_STDIO_BAUD_RATE                                    9600                                                                                             // set by library:platform
 #define MBED_CONF_PLATFORM_STDIO_BUFFERED_SERIAL                              0                                                                                                // set by library:platform
-#define MBED_CONF_PLATFORM_STDIO_CONVERT_NEWLINES                             1                                                                                                // set by application[*]
+#define MBED_CONF_PLATFORM_STDIO_CONVERT_NEWLINES                             1                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_STDIO_CONVERT_TTY_NEWLINES                         1                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_STDIO_FLUSH_AT_EXIT                                1                                                                                                // set by library:platform
 #define MBED_CONF_PLATFORM_STDIO_MINIMAL_CONSOLE_ONLY                         0                                                                                                // set by library:platform
@@ -425,13 +423,11 @@
 #define MBED_LFS_READ_SIZE                                                    64                                                                                               // set by library:littlefs
 #define MBED_STACK_DUMP_ENABLED                                               0                                                                                                // set by library:platform
 #define MBED_TRACE_COLOR_THEME                                                0                                                                                                // set by library:mbed-trace
-#define MBED_TRACE_MAX_LEVEL                                                  TRACE_LEVEL_DEBUG                                                                                // set by application[*]
 #define MEM_ALLOC                                                             malloc                                                                                           // set by library:mbed-trace
 #define MEM_FREE                                                              free                                                                                             // set by library:mbed-trace
 #define PPP_DEBUG                                                             0                                                                                                // set by library:ppp
 // Macros
 #define MBEDTLS_CIPHER_MODE_CTR                                                                                                                                                // defined by library:SecureStore
-#define MBEDTLS_USER_CONFIG_FILE                                              "mbedtls_lora_config.h"                                                                          // defined by application
 #define NSAPI_PPP_AVAILABLE                                                   (MBED_CONF_PPP_ENABLED || MBED_CONF_LWIP_PPP_ENABLED)                                            // defined by library:ppp
 #define NSDYNMEM_TRACKER_ENABLED                                              MBED_CONF_NANOSTACK_LIBSERVICE_NSDYNMEM_TRACKER_ENABLED                                          // defined by library:nanostack-libservice
 #define NS_USE_EXTERNAL_MBED_TLS                                                                                                                                               // defined by library:nanostack

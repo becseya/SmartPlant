@@ -5,7 +5,6 @@
 
 #include "aggregation/Manager.hpp"
 #include "app/RGBLed.hpp"
-#include "app/lora/lora.hpp"
 #include "app/mode_selector.hpp"
 #include "app/sensors/Brightness.hpp"
 #include "app/sensors/Gps.hpp"
@@ -19,8 +18,7 @@
 #include "app/utils/misc.hpp"
 #include "mbed.h"
 
-// minimal for LoRa: 10 + app events: 5
-#define MAX_NUMBER_OF_GLOBAL_EVENTS 15
+#define MAX_NUMBER_OF_GLOBAL_EVENTS 5
 
 using namespace SmartPlant;
 using GlobalEventQueue  = SmartPlant::EventQueue;
@@ -100,17 +98,6 @@ void buildSensorData(SensorDataBuilder& builder)
 
 int main()
 {
-    // callbacks
-    Lora::onReceive([](uint8_t port, const uint8_t* buffer, size_t size) -> void {
-        LOG_DEBUG_BUFFER(buffer, size, " RX Data on port %u: ", port);
-        rgbLed.parseCommand((const char*)buffer, size);
-    });
-
-    Lora::setMessageBuilder([&](uint8_t* buffer, size_t size) -> int16_t {
-        LOG_DEBUG_BUFFER(sensorDataBuilder.getPtr(), sensorDataBuilder.getSize(), "TX Binary data: ");
-        return sensorDataBuilder.copyTo(buffer, size);
-    });
-
     modeSelector.onTick([&](Mode currentMode) -> void {
         LOG("") // extra new line
         aggregationManager.update(currentMode == Mode::Normal);
@@ -119,13 +106,9 @@ int main()
 
         sensorDataBuilder.reset();
         buildSensorData(sensorDataBuilder);
-        Lora::initiateTransmit();
     });
 
     // init
-    LOG_DEBUG("Initializing LoRa stack...")
-    Lora::init(globalEvents);
-
     LOG_DEBUG("Initializing %u sensors...", sensors.size())
     for (auto& s : sensors) {
         if (!s->init())
