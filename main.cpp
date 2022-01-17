@@ -10,6 +10,7 @@
 #include "app/sensors/MMA8451Q.hpp"
 #include "app/sensors/Si7021.hpp"
 #include "app/utils/Json.hpp"
+#include "app/utils/LineBufferedSerial.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
 #include "app/utils/misc.hpp"
@@ -32,8 +33,9 @@ using GlobalEventQueue = SmartPlant::EventQueue;
 GlobalEventQueue globalEvents(MAX_NUMBER_OF_GLOBAL_EVENTS);
 
 // Hardware elements and other classes
-I2C    i2cBus(PB_9, PB_8);
-RGBLed rgbLed(PB_12, PA_12, PA_11);
+I2C                     i2cBus(PB_9, PB_8);
+RGBLed                  rgbLed(PB_12, PA_12, PA_11);
+LineBufferedSerial<128> serial(USBTX, USBRX);
 
 // Sensors
 Sensors::Brightness sBrightness(PA_4);
@@ -86,6 +88,13 @@ int main()
         builder.append("light", sBrightness.aggregator.getLastSample());
 
         printf("%s\n", builder.toString());
+    });
+
+    globalEvents.call_every(100ms, [&]() -> void { //
+        auto line = serial.readNextLine();
+
+        if (line)
+            printf("%s\n", line);
     });
 
     // infinite loop
