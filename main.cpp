@@ -33,9 +33,9 @@ using GlobalEventQueue = SmartPlant::EventQueue;
 GlobalEventQueue globalEvents(MAX_NUMBER_OF_GLOBAL_EVENTS);
 
 // Hardware elements and other classes
-I2C                     i2cBus(PB_9, PB_8);
-RGBLed                  rgbLed(PB_12, PA_12, PA_11);
-LineBufferedSerial<128> serial(USBTX, USBRX);
+I2C                      i2cBus(PB_9, PB_8);
+RGBLed                   rgbLed(PB_12, PA_12, PA_11);
+LineBufferedSerial<1024> serial(USBTX, USBRX);
 
 // Sensors
 Sensors::Brightness sBrightness(PA_4);
@@ -56,6 +56,35 @@ const auto aggregators = make_array<Aggregation::Aggregator*>( //
 Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 
 Json::Builder builder;
+
+struct SerialCommand : public Json::ObjectParser
+{
+
+    int   timeStamp;
+    int   greenhouse_id;
+    int   room_id;
+    int   row_id;
+    float pumpAcid;
+    float pumpFertilizerA;
+    float pumpFertilizerB;
+    bool  led;
+    float waterBoiler;
+
+    SerialCommand()
+    {
+        addField("timeStamp", timeStamp);
+        addField("greenhouse_id", greenhouse_id);
+        addField("room_id", room_id);
+        addField("row_id", row_id);
+        addField("pumpAcid", pumpAcid);
+        addField("pumpFertilizerA", pumpFertilizerA);
+        addField("pumpFertilizerB", pumpFertilizerB);
+        addField("led", led);
+        addField("waterBoiler", waterBoiler);
+    }
+};
+
+SerialCommand command;
 
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
@@ -93,8 +122,9 @@ int main()
     globalEvents.call_every(100ms, [&]() -> void { //
         auto line = serial.readNextLine();
 
-        if (line)
-            printf("%s\n", line);
+        if (line && command.parse(line)) {
+            rgbLed.setColor3Bit(command.led ? 0b111 : 0);
+        }
     });
 
     // infinite loop

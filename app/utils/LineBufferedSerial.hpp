@@ -14,7 +14,7 @@ class LineBufferedSerial
         uart.set_blocking(false);
     }
 
-    const char* readNextLine()
+    char* readNextLine()
     {
         char c;
 
