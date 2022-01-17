@@ -9,13 +9,21 @@
 #include "app/sensors/Gps.hpp"
 #include "app/sensors/MMA8451Q.hpp"
 #include "app/sensors/Si7021.hpp"
+#include "app/utils/Json.hpp"
 #include "app/utils/array.hpp"
 #include "app/utils/log.hpp"
 #include "app/utils/misc.hpp"
 #include "mbed.h"
 
+#include <cstdio>
+#include <time.h>
+
 #define MAX_NUMBER_OF_GLOBAL_EVENTS 5
 #define SENSOR_UPDATE_PERIOD        2s
+
+#define ID_GREENHOUSE 515
+#define ID_ROOM       5
+#define ID_ROW        1
 
 using namespace SmartPlant;
 using GlobalEventQueue = SmartPlant::EventQueue;
@@ -45,6 +53,8 @@ const auto aggregators = make_array<Aggregation::Aggregator*>( //
 
 Aggregation::Manager<array_size(aggregators)> aggregationManager(aggregators);
 
+Json::Builder builder;
+
 // -------------------------------------------------- START OF MAIN ---------------------------------------------------
 
 int main()
@@ -59,6 +69,23 @@ int main()
     globalEvents.call_every(SENSOR_UPDATE_PERIOD, [&]() -> void {
         for (auto& s : sensors)
             s->update();
+
+        auto tm = sGps.getLastMeasurement().time;
+
+        builder.reset();
+
+        builder.append("timeStamp", mktime(&tm));
+        builder.append("greenhouse_id", ID_GREENHOUSE);
+        builder.append("room_id", ID_ROOM);
+        builder.append("row_id", ID_ROW);
+        builder.append("amb_temp", sTempHum.aggregatorTemp.getLastSample());
+        builder.append("amb_hum", sTempHum.aggregatorHumidity.getLastSample());
+        builder.append("water_temp", 23.2);
+        builder.append("pH", 6.3);
+        builder.append("EC", 120.3);
+        builder.append("light", sBrightness.aggregator.getLastSample());
+
+        printf("%s\n", builder.toString());
     });
 
     // infinite loop
